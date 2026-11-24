@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { createCommandmentsService, CommandmentNotFoundError } from '../src/services/commandments-service.ts'
+import { createCommandmentsService } from '../src/services/commandments-service.ts'
+import { AppError } from '../src/errors.ts'
 import type { CommandmentsRepository } from '../src/repositories/commandments-repository.ts'
 import type { Commandment } from '../src/db/types.ts'
 
@@ -27,7 +28,12 @@ test('getCommandment finds by number', async () => {
   assert.deepEqual(await service.getCommandment(1), { id: 2, number: 1, text: 'First' })
 })
 
-test('getCommandment throws CommandmentNotFoundError for a missing number', async () => {
+test('getCommandment throws a NOT_FOUND AppError for a missing number', async () => {
   const service = createCommandmentsService(fakeRepo(rows))
-  await assert.rejects(service.getCommandment(7), CommandmentNotFoundError)
+  await assert.rejects(service.getCommandment(7), (err) => {
+    assert.ok(err instanceof AppError)
+    assert.equal(err.code, 'NOT_FOUND')
+    assert.equal(err.message, 'Commandment 7 not found.')
+    return true
+  })
 })

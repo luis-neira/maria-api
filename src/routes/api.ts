@@ -7,9 +7,11 @@ export interface ApiOptions {
 
 const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
   // Every route under /api, at any depth, runs this first
-  api.addHook('onRequest', async (request, reply) => {
+  // Thrown, not sent, so the error handler formats it like every other error.
+  // A plain statusCode, not an AppError: authentication is HTTP's concern, not a service's.
+  api.addHook('onRequest', async (request) => {
     if (request.headers['x-api-key'] !== opts.apiKey) {
-      return reply.code(401).send({ message: 'Missing or invalid API key' })
+      throw Object.assign(new Error('Missing or invalid API key.'), { statusCode: 401 })
     }
   })
 

@@ -2,13 +2,14 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import Fastify from 'fastify'
 import commandmentsRoutes from '../src/routes/commandments.ts'
-import { CommandmentNotFoundError, type CommandmentsService } from '../src/services/commandments-service.ts'
+import { commandmentNotFound, type CommandmentsService } from '../src/services/commandments-service.ts'
+import { errorHandler } from '../src/error-handler.ts'
 import type { ExaminationQuestionsService } from '../src/services/examination-questions-service.ts'
 
 // Fake services: the routes are tested without a database
 const fakeService: CommandmentsService = {
   async listCommandments () { return [{ id: 1, number: 1, text: 'First' }] },
-  async getCommandment (number) { throw new CommandmentNotFoundError(number) }
+  async getCommandment (number) { throw commandmentNotFound(number) }
 }
 
 const fakeQuestions: ExaminationQuestionsService = {
@@ -17,6 +18,7 @@ const fakeQuestions: ExaminationQuestionsService = {
 
 function createApp () {
   const app = Fastify()
+  app.setErrorHandler(errorHandler)   // as buildApp does
   app.register(commandmentsRoutes, { prefix: '/commandments', service: fakeService, questions: { service: fakeQuestions } })
   return app
 }
@@ -30,13 +32,13 @@ test('GET / lists the commandments from the service', async (t) => {
   assert.deepEqual(res.json(), [{ id: 1, number: 1, text: 'First' }])
 })
 
-test('domain errors become HTTP status codes', async (t) => {
+test('application errors become problem responses', async (t) => {
   const app = createApp()
   t.after(() => app.close())
 
   const missing = await app.inject({ method: 'GET', url: '/commandments/3' })
   assert.equal(missing.statusCode, 404)
-  assert.deepEqual(missing.json(), { statusCode: 404, error: 'Not Found', message: 'Commandment 3 not found' })
+  assert.deepEqual(missing.json(), { type: 'about:blank', title: 'Not Found', status: 404, detail: 'Commandment 3 not found.' })
 })
 
 test('the schema rejects a bad number before the service runs', async (t) => {

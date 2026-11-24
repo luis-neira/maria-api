@@ -1,7 +1,7 @@
 import Fastify, { type FastifyServerOptions } from 'fastify'
 import db from './plugins/db.ts'
 import apiRoutes from './routes/api.ts'
-import { errorHandler } from './error-handler.ts'
+import { errorHandler, notFoundHandler } from './error-handler.ts'
 
 // Everything the app needs from the outside. Only server.ts reads process.env.
 export interface AppOptions extends FastifyServerOptions {
@@ -12,8 +12,9 @@ export interface AppOptions extends FastifyServerOptions {
 export function buildApp ({ databaseUrl, apiKey, ...fastifyOpts }: AppOptions) {
   const app = Fastify(fastifyOpts)
 
-  // Set at the root, so every plugin inherits it
+  // Set at the root, so every plugin inherits them
   app.setErrorHandler(errorHandler)
+  app.setNotFoundHandler(notFoundHandler)
 
   app.register(db, { connectionString: databaseUrl })
   app.register(apiRoutes, { prefix: '/api', apiKey })

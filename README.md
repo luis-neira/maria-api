@@ -57,14 +57,27 @@ Every route under `/api` needs the `x-api-key` header, or it gets a 401.
 
 `:number` is the commandment number (1-10), not the row `id`. JSON fields are camelCase (`commandmentId`, `questionPosition`) because of Kysely's `CamelCasePlugin`.
 
+## Errors
+
+Every error response, including an unknown route, is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html) problem document with content type `application/problem+json`:
+
+```json
+{ "type": "about:blank", "title": "Not Found", "status": 404, "detail": "Commandment 3 not found." }
+```
+
+- Services throw `AppError` from `src/errors.ts` with a code. The error handler in `src/error-handler.ts` maps each code to a status: `BAD_REQUEST` and `VALIDATION_ERROR` become 400, `NOT_FOUND` 404, `CONFLICT` 409.
+- Fastify's own 4xx errors, such as a failed schema check, keep their status, message and headers.
+- Anything else is logged and returns a 500 with the detail `Something went wrong.` The client never sees the message, stack trace or SQL.
+
 ## Folders, top to bottom
 
 | Folder | Role | Knows about HTTP? |
 |---|---|---|
 | `src/server.ts` | Reads the environment and calls `app.listen`. The only file that reads `process.env`. | yes |
-| `src/app.ts`, `src/error-handler.ts` | `buildApp(options)`: plugins, the `/api` prefix and the error handler | yes |
+| `src/app.ts`, `src/error-handler.ts` | `buildApp(options)`: plugins, the `/api` prefix, and the error and not-found handlers | yes |
+| `src/errors.ts` | `AppError` and its codes | no |
 | `src/routes/` | Routes and JSON schemas. The API-key check is in `api.ts`. | yes |
-| `src/services/` | Rules and domain errors (`CommandmentNotFoundError` is a 404) | no |
+| `src/services/` | Rules. They throw `AppError` (for example `NOT_FOUND`) and know nothing of HTTP statuses. | no |
 | `src/repositories/` | The only Kysely code | no |
 | `src/plugins/db.ts` | The db plugin (`fastify-plugin`): the `pg` pool and the `Kysely<DB>` instance | yes |
 | `src/db/` | `db.d.ts` (generated) and `types.ts` (row types, `Conn`) | no |

@@ -4,6 +4,7 @@ import { PGlite } from '@electric-sql/pglite'
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket'
 import { applyMigrations, connect } from '@databases/pg-migrations'
 import { buildApp, type AppOptions } from '../src/app.ts'
+import { AppError, type ErrorCode } from '../src/errors.ts'
 
 // A real Postgres (compiled to WASM) in this process, reached over a socket by pg.
 // Port 0: the OS picks a free port, so this never clashes with `npm run db:serve` on 54329.
@@ -65,6 +66,8 @@ test('/api needs an API key, at every depth', async (t) => {
   for (const url of ['/api/commandments', '/api/commandments/1', '/api/commandments/1/questions']) {
     const res = await app.inject({ method: 'GET', url })
     assert.equal(res.statusCode, 401, url)
+    assert.equal(res.headers['content-type'], 'application/problem+json; charset=utf-8', url)
+    assert.deepEqual(res.json(), { type: 'about:blank', title: 'Unauthorized', status: 401, detail: 'Missing or invalid API key.' })
   }
 })
 
@@ -108,10 +111,13 @@ test('a missing commandment is a 404, an out-of-range number is a 400', async (t
 
   const missing = await app.inject({ method: 'GET', url: '/api/commandments/3', headers })
   assert.equal(missing.statusCode, 404)
-  assert.equal(missing.json().message, 'Commandment 3 not found')
+  assert.equal(missing.headers['content-type'], 'application/problem+json; charset=utf-8')
+  assert.deepEqual(missing.json(), { type: 'about:blank', title: 'Not Found', status: 404, detail: 'Commandment 3 not found.' })
 
   const outOfRange = await app.inject({ method: 'GET', url: '/api/commandments/11', headers })
   assert.equal(outOfRange.statusCode, 400)
+  assert.equal(outOfRange.headers['content-type'], 'application/problem+json; charset=utf-8')
+  assert.deepEqual(outOfRange.json(), { type: 'about:blank', title: 'Bad Request', status: 400, detail: 'params/number must be <= 10' })
 })
 
 test('questions come back camelCased and in position order', async (t) => {
@@ -135,7 +141,34 @@ test('questions for a missing commandment are a 404', async (t) => {
 
   const res = await app.inject({ method: 'GET', url: '/api/commandments/9/questions', headers })
   assert.equal(res.statusCode, 404)
-  assert.equal(res.json().message, 'Commandment 9 not found')
+  assert.deepEqual(res.json(), { type: 'about:blank', title: 'Not Found', status: 404, detail: 'Commandment 9 not found.' })
+})
+
+test('a route that does not exist is a problem 404', async (t) => {
+  const app = createApp()
+  t.after(() => app.close())
+
+  for (const url of ['/nope', '/api/nope']) {
+    const res = await app.inject({ method: 'GET', url, headers })
+    assert.equal(res.statusCode, 404, url)
+    assert.equal(res.headers['content-type'], 'application/problem+json; charset=utf-8', url)
+    assert.deepEqual(res.json(), { type: 'about:blank', title: 'Not Found', status: 404, detail: `Route GET:${url} not found` })
+  }
+})
+
+test('a 4xx error from Fastify or a plugin keeps its status and headers', async (t) => {
+  const app = createApp()
+  // Shaped like @fastify/error and http-errors: statusCode plus optional headers
+  app.get('/limited', async () => {
+    throw Object.assign(new Error('Rate limit exceeded'), { statusCode: 429, headers: { 'retry-after': '60' } })
+  })
+  t.after(() => app.close())
+
+  const res = await app.inject({ method: 'GET', url: '/limited' })
+  assert.equal(res.statusCode, 429)
+  assert.equal(res.headers['retry-after'], '60')
+  assert.equal(res.headers['content-type'], 'application/problem+json; charset=utf-8')
+  assert.deepEqual(res.json(), { type: 'about:blank', title: 'Too Many Requests', status: 429, detail: 'Rate limit exceeded' })
 })
 
 test('boot fails fast when the database is unreachable', async () => {
@@ -151,6 +184,56 @@ test('a 500 hides its message from the client and logs it', async (t) => {
 
   const res = await app.inject({ method: 'GET', url: '/boom' })
   assert.equal(res.statusCode, 500)
-  assert.deepEqual(res.json(), { statusCode: 500, error: 'Internal Server Error', message: 'Something went wrong' })
+  assert.equal(res.headers['content-type'], 'application/problem+json; charset=utf-8')
+  assert.deepEqual(res.json(), { type: 'about:blank', title: 'Internal Server Error', status: 500, detail: 'Something went wrong.' })
+  assert.ok(!res.body.includes('hunter2'))
   assert.ok(lines.some((l) => l.includes('password=hunter2')), 'the real message is in the log')
+})
+
+test('an error with a non-error statusCode is still an unexpected 500', async (t) => {
+  const app = createApp({ logger: false })
+  app.get('/odd', async () => { throw Object.assign(new Error('internal detail'), { statusCode: 302 }) })
+  t.after(() => app.close())
+
+  const res = await app.inject({ method: 'GET', url: '/odd' })
+  assert.equal(res.statusCode, 500)
+  assert.deepEqual(res.json(), { type: 'about:blank', title: 'Internal Server Error', status: 500, detail: 'Something went wrong.' })
+})
+
+test('each AppError code maps to its status', async (t) => {
+  const app = createApp()
+  app.get<{ Params: { code: ErrorCode } }>('/throw/:code', async (request) => {
+    throw new AppError(request.params.code, 'Nope.')
+  })
+  t.after(() => app.close())
+
+  const expected: [ErrorCode, number, string][] = [
+    ['BAD_REQUEST', 400, 'Bad Request'],
+    ['VALIDATION_ERROR', 400, 'Bad Request'],
+    ['NOT_FOUND', 404, 'Not Found'],
+    ['CONFLICT', 409, 'Conflict']
+  ]
+  for (const [code, status, title] of expected) {
+    const res = await app.inject({ method: 'GET', url: `/throw/${code}` })
+    assert.equal(res.headers['content-type'], 'application/problem+json; charset=utf-8', code)
+    assert.deepEqual(res.json(), { type: 'about:blank', title, status, detail: 'Nope.' }, code)
+  }
+})
+
+test('an error with status instead of statusCode keeps it, as Fastify does', async (t) => {
+  const app = createApp()
+  app.get('/gone', async () => { throw Object.assign(new Error('Gone away'), { status: 410 }) })
+  t.after(() => app.close())
+
+  const res = await app.inject({ method: 'GET', url: '/gone' })
+  assert.deepEqual(res.json(), { type: 'about:blank', title: 'Gone', status: 410, detail: 'Gone away' })
+})
+
+test('a 4xx with no standard phrase still has a title', async (t) => {
+  const app = createApp()
+  app.get('/odd4xx', async () => { throw Object.assign(new Error('client closed'), { statusCode: 499 }) })
+  t.after(() => app.close())
+
+  const res = await app.inject({ method: 'GET', url: '/odd4xx' })
+  assert.deepEqual(res.json(), { type: 'about:blank', title: 'Client Error', status: 499, detail: 'client closed' })
 })
