@@ -15,7 +15,7 @@ It runs on [PGlite](https://pglite.dev) (Postgres compiled to WebAssembly) and s
 npm install
 
 # Terminal 1: start the database server and leave it running
-npm run db:server
+npm run db:serve
 
 # Terminal 2
 npm run db:migrate
@@ -26,14 +26,14 @@ npm run db:seed
 
 | Script | What it does |
 |---|---|
-| `db:server` | Starts PGlite on `127.0.0.1:54329` with data in `./data/pgdata`. The other scripts need this running. |
+| `db:serve` | Starts PGlite on `127.0.0.1:54329` with data in `./data/pgdata`. The other scripts need this running. |
 | `db:migrate` | Applies pending migrations from `db/migrations/`. Already-applied migrations are skipped. |
 | `db:seed` | Loads `db/seed.sql` in a single transaction. Safe to re-run: it updates text in place. |
 | `db:reset` | Drops and recreates the `public` schema, then runs `db:migrate` and `db:seed`. The server keeps running. |
 
 ## Connecting with psql
 
-With `db:server` running:
+With `db:serve` running:
 
 ```sh
 psql "postgres://postgres:postgres@127.0.0.1:54329/postgres?sslmode=disable"
@@ -51,27 +51,27 @@ Example queries:
 ```sql
 \dt
 
-SELECT c.number, c.text AS commandment, q.position, q.text AS question
-FROM commandment c
-JOIN examination_question q ON q.commandment_id = c.id
-ORDER BY c.number, q.position;
+SELECT c.number, c.text AS commandment, q.question_position, q.text AS question
+FROM commandments c
+JOIN examination_questions q ON q.commandment_id = c.id
+ORDER BY c.number, q.question_position;
 ```
 
 Notes:
 
 - PGlite 0.6.0 reports itself as PostgreSQL 19. If your `psql` is older, it prints a version-mismatch warning in interactive mode. Basic queries and `\d` commands work. `pg_dump` won't work: it refuses to dump a server with a newer major version.
 - You can also point GUI tools (TablePlus, DBeaver, pgAdmin) at the same URL. The server allows up to 10 concurrent connections.
-- Only one process can open `./data/pgdata` at a time, so all access goes through `db:server`.
+- Only one process can open `./data/pgdata` at a time, so all access goes through `db:serve`.
 
 ## Schema
 
 ```
-commandment                     examination_question
------------                     --------------------
-id      integer PK (identity)   id             integer PK (identity)
-number  integer UNIQUE (1-10)   commandment_id integer FK -> commandment.id (ON DELETE CASCADE)
-text    text                    position       integer (>= 1), UNIQUE with commandment_id
-                                text           text
+commandments                    examination_questions
+------------                    ---------------------
+id      integer PK (identity)   id                integer PK (identity)
+number  integer UNIQUE (1-10)   commandment_id    integer FK -> commandments.id (ON DELETE CASCADE)
+text    text                    question_position integer (>= 1), UNIQUE with commandment_id
+                                text              text
 ```
 
 It uses the Catholic numbering from the source document. The seed loads 10 commandments and 14 questions.
@@ -85,11 +85,24 @@ It uses the Catholic numbering from the source document. The seed loads 10 comma
 
 ## Seed data
 
-`db/seed.sql` is transcribed from the PDF word for word, with three normalizations: the small-caps "LORD" is written "Lord", the curly apostrophe (`’`) is kept, and words split by line-break hyphens are rejoined. It upserts with `ON CONFLICT ... DO UPDATE`. Rows removed from the file are **not** deleted from the database.
+`db/seed.sql` is transcribed from the PDF word for word. The small-caps "LORD" is written in capitals, apostrophes are plain ASCII (escaped as `''` in SQL), and words split by line-break hyphens are rejoined. It upserts with `ON CONFLICT ... DO UPDATE`. Rows removed from the file are **not** deleted from the database.
 
 ## Configuration
 
 `.env` holds `DATABASE_URL` for the local PGlite server. It is committed because it only points at a local database with default credentials. Put real credentials in `.env.local` (git-ignored) or in the deployment environment.
+
+## Planned application
+
+Not built yet. The API will follow the Fastify demo in `matteo-fastify/fastify-lessons/hands-on-exercise/demo`, with Kysely in place of Drizzle. See [`docs/research/fastify-demo-design-with-kysely.md`](docs/research/fastify-demo-design-with-kysely.md) for the research. Decisions so far:
+
+- TypeScript, ESM (`"type": "module"`).
+- Kysely with `PostgresDialect` and a `pg` pool pointed at the pglite-socket server, so the same code runs against real Postgres later.
+- Migrations stay in `@databases/pg-migrations` as plain SQL. Kysely is only the query layer.
+- Database types are generated with `kysely-codegen` from the running server. Its own `atdatabases_*` tables are excluded.
+- `CamelCasePlugin`, so `question_position` becomes `questionPosition` in TypeScript.
+- An API-key check and an `/api` route prefix, as in the demo. The API key stays out of the committed `.env`: put it in `.env.local`.
+- Routes → services → repositories. There are no use-cases or transactions yet, because the data is read-only.
+- The whole-app tests don't load `db/seed.sql`.
 
 ## Source material
 
