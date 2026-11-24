@@ -4,16 +4,16 @@
 -- Run via `npm run db:seed` (psql, ON_ERROR_STOP=1, --single-transaction).
 
 INSERT INTO commandments (number, text) VALUES
-  (1,  'I am the LORD your God: you shall not have strange Gods before me.'),
-  (2,  'You shall not take the name of the LORD your God in vain.'),
-  (3,  'Remember to keep holy the LORD''s Day.'),
-  (4,  'Honor your father and your mother.'),
-  (5,  'You shall not kill.'),
-  (6,  'You shall not commit adultery.'),
-  (7,  'You shall not steal.'),
-  (8,  'You shall not bear false witness against your neighbor.'),
-  (9,  'You shall not covet your neighbor''s spouse.'),
-  (10, 'You shall not covet your neighbor''s goods.')
+  (1,  'I am the LORD thy God: thou shalt not have strange Gods before me.'),
+  (2,  'Thou shalt not take the Name of the LORD thy God in vain.'),
+  (3,  'Remember thou keep holy the Sabbath-Day.'),
+  (4,  'Honor thy father and thy mother.'),
+  (5,  'Thou shalt not kill.'),
+  (6,  'Thou shalt not commit adultery.'),
+  (7,  'Thou shalt not steal.'),
+  (8,  'Thou shalt not bear false witness against thy neighbor.'),
+  (9,  'Thou shalt not covet thy neighbor''s wife.'),
+  (10, 'Thou shalt not covet thy neighbor''s goods.')
 ON CONFLICT (number) DO UPDATE SET text = excluded.text;
 
 INSERT INTO examination_questions (commandment_id, question_position, text)
