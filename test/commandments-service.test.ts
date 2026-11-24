@@ -7,7 +7,7 @@ import type { Commandment } from '../src/db/types.ts'
 // A fake repository: an array behind the same interface. No database, no Fastify.
 function fakeRepo (rows: Commandment[]): CommandmentsRepository {
   return {
-    async list () { return [...rows].sort((a, b) => a.number - b.number) },
+    async findAll () { return [...rows].sort((a, b) => a.number - b.number) },
     async findByNumber (number) { return rows.find((r) => r.number === number) }
   }
 }

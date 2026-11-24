@@ -6,12 +6,12 @@ import type { CommandmentsRepository } from '../src/repositories/commandments-re
 import type { ExaminationQuestionsRepository } from '../src/repositories/examination-questions-repository.ts'
 
 const commandments: CommandmentsRepository = {
-  async list () { return [{ id: 1, number: 1, text: 'First' }] },
+  async findAll () { return [{ id: 1, number: 1, text: 'First' }] },
   async findByNumber (number) { return number === 1 ? { id: 1, number: 1, text: 'First' } : undefined }
 }
 
 const questions: ExaminationQuestionsRepository = {
-  async listByCommandmentNumber (number) {
+  async findByCommandmentNumber (number) {
     return number === 1 ? [{ id: 1, commandmentId: 1, questionPosition: 1, text: 'Have I?' }] : []
   }
 }
