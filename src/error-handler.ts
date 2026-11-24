@@ -9,12 +9,12 @@ const statusByCode: Record<ErrorCode, number> = {
   CONFLICT: 409
 }
 
-// RFC 9457 problem details. type 'about:blank' means the title is the HTTP status phrase.
+// RFC 9457 problem details. No type member: RFC 9457 then treats it as "about:blank", so the title is the HTTP status phrase.
 function sendProblem (reply: FastifyReply, status: number, detail: string) {
   return reply
     .code(status)
     .type('application/problem+json; charset=utf-8')
-    .send({ type: 'about:blank', title: STATUS_CODES[status] ?? (status < 500 ? 'Client Error' : 'Server Error'), status, detail })
+    .send({ title: STATUS_CODES[status] ?? (status < 500 ? 'Client Error' : 'Server Error'), status, detail })
 }
 
 export function errorHandler (error: FastifyError, request: FastifyRequest, reply: FastifyReply) {

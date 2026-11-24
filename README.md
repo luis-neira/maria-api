@@ -62,7 +62,7 @@ Every route under `/api` needs the `x-api-key` header, or it gets a 401.
 Every error response, including an unknown route, is an [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457.html) problem document with content type `application/problem+json`:
 
 ```json
-{ "type": "about:blank", "title": "Not Found", "status": 404, "detail": "Commandment 3 not found." }
+{ "title": "Not Found", "status": 404, "detail": "Commandment 3 not found." }
 ```
 
 - Services throw `AppError` from `src/errors.ts` with a code. The error handler in `src/error-handler.ts` maps each code to a status: `BAD_REQUEST` and `VALIDATION_ERROR` become 400, `NOT_FOUND` 404, `CONFLICT` 409.

@@ -38,7 +38,7 @@ test('application errors become problem responses', async (t) => {
 
   const missing = await app.inject({ method: 'GET', url: '/commandments/3' })
   assert.equal(missing.statusCode, 404)
-  assert.deepEqual(missing.json(), { type: 'about:blank', title: 'Not Found', status: 404, detail: 'Commandment 3 not found.' })
+  assert.deepEqual(missing.json(), { title: 'Not Found', status: 404, detail: 'Commandment 3 not found.' })
 })
 
 test('the schema rejects a bad number before the service runs', async (t) => {
