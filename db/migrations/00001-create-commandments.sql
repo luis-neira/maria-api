@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS commandments (
+  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  number integer NOT NULL UNIQUE CHECK (number BETWEEN 1 AND 10),
+  text text NOT NULL
+);

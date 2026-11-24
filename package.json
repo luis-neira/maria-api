@@ -1,0 +1,21 @@
+{
+  "name": "maria-schema",
+  "version": "1.0.0",
+  "description": "",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "db:serve": "pglite-server --db=./data/pgdata --port=54329 --max-connections=10",
+    "db:migrate": "node --env-file=.env node_modules/.bin/pg-migrations apply -D db/migrations",
+    "db:seed": "set -a && . ./.env && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 --single-transaction -q -f db/seed.sql",
+    "db:reset": "set -a && . ./.env && set +a && psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -q -c \"SET client_min_messages = warning; DROP SCHEMA public CASCADE; CREATE SCHEMA public;\" && npm run db:migrate && npm run db:seed"
+  },
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "@databases/pg-migrations": "6.0.0",
+    "@electric-sql/pglite": "0.6.0",
+    "@electric-sql/pglite-socket": "0.3.0"
+  }
+}
