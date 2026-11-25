@@ -1,5 +1,7 @@
 # Offense categories link to Commandments many-to-many
 
+Superseded by [ADR 0002](0002-offenses-belong-to-one-commandment.md).
+
 The source gives one list of Offenses for the Seventh and Tenth Commandments together. We model an Offense category as linkable to several Commandments through a `commandment_offense_categories` junction table, instead of giving each category a single `commandment_id`. The shared list is stored once, under one "General" category linked to both Commandments, and every Offense still belongs to exactly one category.
 
 ## Considered options

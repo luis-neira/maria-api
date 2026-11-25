@@ -39,7 +39,7 @@ before(async () => {
 // Every test starts with empty tables and ids from 1. Tests insert their own rows; they don't load db/seed.sql.
 beforeEach(async () => {
 	await pglite.exec(
-		"TRUNCATE offenses, commandment_offense_categories, offense_categories, examination_questions, commandments RESTART IDENTITY",
+		"TRUNCATE offenses, offense_categories, examination_questions, commandments RESTART IDENTITY",
 	);
 });
 

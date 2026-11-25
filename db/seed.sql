@@ -37,54 +37,33 @@ FROM (VALUES
 JOIN commandments c ON c.number = q.commandment_number
 ON CONFLICT (commandment_id, question_position) DO UPDATE SET text = excluded.text;
 
--- Offense categories and offenses transcribed from docs/examination-of-conscience-10.md,
+
+-- Offense categories and Offenses transcribed from docs/examination-of-conscience-10.md,
 -- with the trailing "such as:" removed and typos corrected.
--- Commandments 6 and 9 have no Offenses in the source.
--- Categories have no unique key: "General" repeats across Commandments, and the Seventh and
--- Tenth share one category (see docs/adr/0001-offense-categories-shared-across-commandments.md).
--- A category is matched by (Commandment, text) via the junction table, so re-running does not
--- duplicate. Editing text inserts a new row; the old one remains until `npm run db:reset`.
+-- Commandments 6 and 9 have no Offenses in the source. Where the source has no sub-headings
+-- (the Fifth, the Seventh and Tenth, the Eighth), Offenses are in no category. The Third's
+-- heading names an act, so it is an Offense, not a category (see GLOSSARY.md).
+-- Editing text inserts a new row; the old one remains until `npm run db:reset`.
 
-DO $$
-DECLARE
-  def record;
-  n integer;
-  cat_id integer;
-BEGIN
-  FOR def IN
-    SELECT * FROM (VALUES
-      (ARRAY[1],     'Sins which detract from the honor and worship due to God'),
-      (ARRAY[1],     'Those against Faith'),
-      (ARRAY[1],     'Those against Hope'),
-      (ARRAY[1],     'Those against Charity'),
-      (ARRAY[2],     'All irreverence towards God''s most Holy Name'),
-      (ARRAY[3],     'Neglect to hear Mass on Sundays and Holy days of Obligation'),
-      (ARRAY[4],     'For Parents'),
-      (ARRAY[4],     'For Husbands and Wives'),
-      (ARRAY[4],     'For the Employed'),
-      (ARRAY[4],     'For all'),
-      (ARRAY[5],     'General'),
-      (ARRAY[7, 10], 'General'),
-      (ARRAY[8],     'General')
-    ) AS d (commandment_numbers, text)
-  LOOP
-    SELECT oc.id INTO cat_id
-    FROM offense_categories oc
-    JOIN commandment_offense_categories l ON l.offense_category_id = oc.id
-    JOIN commandments c ON c.id = l.commandment_id
-    WHERE oc.text = def.text AND c.number = def.commandment_numbers[1];
+INSERT INTO offense_categories (commandment_id, text)
+SELECT c.id, oc.text
+FROM (VALUES
+  (1, 'Sins which detract from the honor and worship due to God'),
+  (1, 'Those against Faith'),
+  (1, 'Those against Hope'),
+  (1, 'Those against Charity'),
+  (2, 'All irreverence towards God''s most Holy Name'),
+  (4, 'For Parents'),
+  (4, 'For Husbands and Wives'),
+  (4, 'For the Employed'),
+  (4, 'For all')
+) AS oc (commandment_number, text)
+JOIN commandments c ON c.number = oc.commandment_number
+ON CONFLICT (commandment_id, text) DO NOTHING;
 
-    IF cat_id IS NULL THEN
-      INSERT INTO offense_categories (text) VALUES (def.text) RETURNING id INTO cat_id;
-      INSERT INTO commandment_offense_categories (commandment_id, offense_category_id)
-      SELECT c.id, cat_id FROM commandments c WHERE c.number = ANY (def.commandment_numbers);
-    END IF;
-  END LOOP;
-END $$;
-
--- Offenses are listed by the first Commandment of their category (the shared list uses 7).
-INSERT INTO offenses (offense_category_id, text)
-SELECT oc.id, o.text
+-- Offenses in a category.
+INSERT INTO offenses (commandment_id, offense_category_id, text)
+SELECT c.id, oc.id, o.text
 FROM (VALUES
   (1, 'Sins which detract from the honor and worship due to God', 'Neglect of Prayer'),
   (1, 'Sins which detract from the honor and worship due to God', 'Superstitious practices'),
@@ -112,7 +91,6 @@ FROM (VALUES
   (2, 'All irreverence towards God''s most Holy Name', 'Membership in societies condemned by the Church'),
   (2, 'All irreverence towards God''s most Holy Name', 'Breaking or deferring lawful vows'),
   (2, 'All irreverence towards God''s most Holy Name', 'Irreverence in Divine Service, and in churches and holy places even when service is not going on.'),
-  (3, 'Neglect to hear Mass on Sundays and Holy days of Obligation', 'Working or making others work without necessity on such days.'),
   (4, 'For Parents', 'Hating their children'),
   (4, 'For Parents', 'Cursing them'),
   (4, 'For Parents', 'Giving scandal to them by cursing, drinking, etc.'),
@@ -136,56 +114,75 @@ FROM (VALUES
   (4, 'For the Employed', 'Neglect of work'),
   (4, 'For the Employed', 'Waste of employer''s property, by dishonesty, carelessness, or neglect'),
   (4, 'For all', 'Contempt for the laws of our State and Country, as well as the Church'),
-  (4, 'For all', 'Disobedience to lawful authority'),
-  (5, 'General', 'Unjust taking of human life (and hence, indirectly and implicitly, violence in thought, word, or act which may lead thereto)'),
-  (5, 'General', 'Exposing life or limb to danger without reasonable cause'),
-  (5, 'General', 'Carelessness in leaving about poisons, dangerous drugs, weapons, etc.'),
-  (5, 'General', 'Desires of revenge'),
-  (5, 'General', 'Quarrels'),
-  (5, 'General', 'Fights'),
-  (5, 'General', 'Showing aversion or contempt for others'),
-  (5, 'General', 'Refusing to speak to them when addressed'),
-  (5, 'General', 'Ignoring offers of reconciliation, especially between relatives'),
-  (5, 'General', 'Cherishing an unforgiving spirit'),
-  (5, 'General', 'Raillery and ridicule'),
-  (5, 'General', 'Insults'),
-  (5, 'General', 'Irritating words and actions'),
-  (5, 'General', 'Sadness at another''s prosperity'),
-  (5, 'General', 'Rejoicing over another''s misfortune'),
-  (5, 'General', 'Jealousy at attentions shown to others'),
-  (5, 'General', 'Tyrannical behavior'),
-  (5, 'General', 'Inducing others to sin by word or example'),
-  (5, 'General', 'Gluttony'),
-  (5, 'General', 'Drunkenness'),
-  (5, 'General', 'Rash use of opiates'),
-  (5, 'General', 'Injury to health by over-indulgence'),
-  (5, 'General', 'Giving drink to others knowing that they will abuse it'),
-  (7, 'General', 'Stealing (What value? What damage done to property or interest?)'),
-  (7, 'General', 'Possession of ill-gotten goods'),
-  (7, 'General', 'Exorbitant prices'),
-  (7, 'General', 'False weights and measures'),
-  (7, 'General', 'Cheating'),
-  (7, 'General', 'Adulteration of wares'),
-  (7, 'General', 'Careless or malicious injury to the property of others'),
-  (7, 'General', 'Cheating at play'),
-  (7, 'General', 'Appropriation of what is lent or found without reasonable pains to return it or to find its owner'),
-  (7, 'General', 'Concealment of fraud, theft, or damage when in duty bound to give information'),
-  (7, 'General', 'Petty thefts'),
-  (7, 'General', 'Culpable delay in paying lawful debts, of restitution, when able to make it'),
-  (7, 'General', 'Neglect to make reasonable efforts and sacrifices in this matter, e.g., by gradually laying up the amount required'),
-  (8, 'General', 'Lying'),
-  (8, 'General', 'Perjury'),
-  (8, 'General', 'Frauds, public and private, such as at elections, etc.'),
-  (8, 'General', 'Malicious falsehoods'),
-  (8, 'General', 'Lies for unjust or bad ends'),
-  (8, 'General', 'Lies against character, especially if told publicly'),
-  (8, 'General', 'Revealing secrets'),
-  (8, 'General', 'Publishing discreditable secrets about others'),
-  (8, 'General', 'Refusing or delaying to restore the good name we have blackened'),
-  (8, 'General', 'Slander or detraction, and encouraging these in others'),
-  (8, 'General', 'Baseless accusations, groundless suspicions, rash judgements of others, in our own mind')
+  (4, 'For all', 'Disobedience to lawful authority')
 ) AS o (commandment_number, category_text, text)
 JOIN commandments c ON c.number = o.commandment_number
-JOIN commandment_offense_categories l ON l.commandment_id = c.id
-JOIN offense_categories oc ON oc.id = l.offense_category_id AND oc.text = o.category_text
-ON CONFLICT (offense_category_id, text) DO NOTHING;
+JOIN offense_categories oc ON oc.commandment_id = c.id AND oc.text = o.category_text
+ON CONFLICT (commandment_id, text) DO NOTHING;
+
+-- Offenses in no category.
+INSERT INTO offenses (commandment_id, text)
+SELECT c.id, o.text
+FROM (VALUES
+  (3, 'Neglect to hear Mass on Sundays and Holy days of Obligation'),
+  (3, 'Working or making others work without necessity on such days.'),
+  (5, 'Unjust taking of human life (and hence, indirectly and implicitly, violence in thought, word, or act which may lead thereto)'),
+  (5, 'Exposing life or limb to danger without reasonable cause'),
+  (5, 'Carelessness in leaving about poisons, dangerous drugs, weapons, etc.'),
+  (5, 'Desires of revenge'),
+  (5, 'Quarrels'),
+  (5, 'Fights'),
+  (5, 'Showing aversion or contempt for others'),
+  (5, 'Refusing to speak to them when addressed'),
+  (5, 'Ignoring offers of reconciliation, especially between relatives'),
+  (5, 'Cherishing an unforgiving spirit'),
+  (5, 'Raillery and ridicule'),
+  (5, 'Insults'),
+  (5, 'Irritating words and actions'),
+  (5, 'Sadness at another''s prosperity'),
+  (5, 'Rejoicing over another''s misfortune'),
+  (5, 'Jealousy at attentions shown to others'),
+  (5, 'Tyrannical behavior'),
+  (5, 'Inducing others to sin by word or example'),
+  (5, 'Gluttony'),
+  (5, 'Drunkenness'),
+  (5, 'Rash use of opiates'),
+  (5, 'Injury to health by over-indulgence'),
+  (5, 'Giving drink to others knowing that they will abuse it'),
+  (8, 'Lying'),
+  (8, 'Perjury'),
+  (8, 'Frauds, public and private, such as at elections, etc.'),
+  (8, 'Malicious falsehoods'),
+  (8, 'Lies for unjust or bad ends'),
+  (8, 'Lies against character, especially if told publicly'),
+  (8, 'Revealing secrets'),
+  (8, 'Publishing discreditable secrets about others'),
+  (8, 'Refusing or delaying to restore the good name we have blackened'),
+  (8, 'Slander or detraction, and encouraging these in others'),
+  (8, 'Baseless accusations, groundless suspicions, rash judgements of others, in our own mind')
+) AS o (commandment_number, text)
+JOIN commandments c ON c.number = o.commandment_number
+ON CONFLICT (commandment_id, text) DO NOTHING;
+
+-- The source gives one list for the Seventh and Tenth. Each Commandment gets its own Offenses
+-- with this wording (see docs/adr/0002-offenses-belong-to-one-commandment.md); the text lives
+-- only here, so a wording fix is one edit.
+INSERT INTO offenses (commandment_id, text)
+SELECT c.id, o.text
+FROM (VALUES
+  ('Stealing (What value? What damage done to property or interest?)'),
+  ('Possession of ill-gotten goods'),
+  ('Exorbitant prices'),
+  ('False weights and measures'),
+  ('Cheating'),
+  ('Adulteration of wares'),
+  ('Careless or malicious injury to the property of others'),
+  ('Cheating at play'),
+  ('Appropriation of what is lent or found without reasonable pains to return it or to find its owner'),
+  ('Concealment of fraud, theft, or damage when in duty bound to give information'),
+  ('Petty thefts'),
+  ('Culpable delay in paying lawful debts, of restitution, when able to make it'),
+  ('Neglect to make reasonable efforts and sacrifices in this matter, e.g., by gradually laying up the amount required')
+) AS o (text)
+JOIN commandments c ON c.number IN (7, 10)
+ON CONFLICT (commandment_id, text) DO NOTHING;
