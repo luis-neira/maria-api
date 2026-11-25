@@ -165,8 +165,8 @@ JOIN commandments c ON c.number = o.commandment_number
 ON CONFLICT (commandment_id, text) DO NOTHING;
 
 -- The source gives one list for the Seventh and Tenth. Each Commandment gets its own Offenses
--- with this wording (see docs/adr/0002-offenses-belong-to-one-commandment.md); the text lives
--- only here, so a wording fix is one edit.
+-- with this wording (see docs/adr/0002-offenses-belong-to-one-commandment.md). Rows match on
+-- text, so fix a wording with an UPDATE migration, not by editing it here alone.
 INSERT INTO offenses (commandment_id, text)
 SELECT c.id, o.text
 FROM (VALUES
