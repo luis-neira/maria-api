@@ -13,7 +13,7 @@ Something a particular penitent did or failed to do, such as stealing from their
 _Avoid_: Sin, offense
 
 **Offense category**:
-A named grouping of a Commandment's Offenses, such as "Those against Faith". A category belongs to exactly one Commandment. A category labels a group and never names a wrongful act: a source heading that names an act, such as "Neglect to hear Mass on Sundays and Holy days of Obligation", is an Offense. No two categories of one Commandment share a name. Categories are unordered. Where the source lists a Commandment's Offenses with no sub-headings, those Offenses are in no category.
+A named grouping of a Commandment's Offenses, such as "Those against Faith". A category belongs to exactly one Commandment and always has at least one Offense. A category labels a group and never names a wrongful act: a source heading that names an act, such as "Neglect to hear Mass on Sundays and Holy days of Obligation", is an Offense. No two categories of one Commandment share a name. Categories are unordered. Where the source lists a Commandment's Offenses with no sub-headings, those Offenses are in no category.
 _Avoid_: Sin type, offense group
 
 **Examination question**:
