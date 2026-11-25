@@ -5,24 +5,25 @@
 
 import type { ColumnType } from "kysely";
 
-export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
-  ? ColumnType<S, I | undefined, U>
-  : ColumnType<T, T | undefined, T>;
+export type Generated<T> =
+	T extends ColumnType<infer S, infer I, infer U>
+		? ColumnType<S, I | undefined, U>
+		: ColumnType<T, T | undefined, T>;
 
 export interface Commandments {
-  id: Generated<number>;
-  number: number;
-  text: string;
+	id: Generated<number>;
+	number: number;
+	text: string;
 }
 
 export interface ExaminationQuestions {
-  commandmentId: number;
-  id: Generated<number>;
-  questionPosition: number;
-  text: string;
+	commandmentId: number;
+	id: Generated<number>;
+	questionPosition: number;
+	text: string;
 }
 
 export interface DB {
-  commandments: Commandments;
-  examinationQuestions: ExaminationQuestions;
+	commandments: Commandments;
+	examinationQuestions: ExaminationQuestions;
 }

@@ -32,28 +32,28 @@ The server won't start without `DATABASE_URL` and `API_KEY`. It refuses to boot 
 
 ## Scripts
 
-| Script | What it does |
-|---|---|
-| `db:serve` | Starts PGlite on `127.0.0.1:54329` with data in `./data/pgdata`. The other scripts need this running. |
-| `db:migrate` | Applies pending migrations from `db/migrations/`. Already-applied migrations are skipped. |
-| `db:seed` | Loads `db/seed.sql` in a single transaction. Safe to re-run: it updates text in place. |
-| `db:reset` | Drops and recreates the `public` schema, then runs `db:migrate` and `db:seed`. The server keeps running. |
-| `db:types` | Regenerates `src/db/db.d.ts` from the running database with `kysely-codegen`. Run it after every new migration and commit the result. |
-| `dev` | Runs the API with `--watch`, loading `.env` then `.env.local`. Logs go through `pino-pretty`. |
-| `start` | Runs the API without watch or pretty logs. The environment must already be set. |
-| `test` | Runs every test with `node --test`. The tests start their own in-process PGlite, so `db:serve` doesn't need to be running. |
-| `typecheck` | `tsc --noEmit`. Node strips types without checking them, so run this too. |
+| Script       | What it does                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `db:serve`   | Starts PGlite on `127.0.0.1:54329` with data in `./data/pgdata`. The other scripts need this running.                                 |
+| `db:migrate` | Applies pending migrations from `db/migrations/`. Already-applied migrations are skipped.                                             |
+| `db:seed`    | Loads `db/seed.sql` in a single transaction. Safe to re-run: it updates text in place.                                                |
+| `db:reset`   | Drops and recreates the `public` schema, then runs `db:migrate` and `db:seed`. The server keeps running.                              |
+| `db:types`   | Regenerates `src/db/db.d.ts` from the running database with `kysely-codegen`. Run it after every new migration and commit the result. |
+| `dev`        | Runs the API with `--watch`, loading `.env` then `.env.local`. Logs go through `pino-pretty`.                                         |
+| `start`      | Runs the API without watch or pretty logs. The environment must already be set.                                                       |
+| `test`       | Runs every test with `node --test`. The tests start their own in-process PGlite, so `db:serve` doesn't need to be running.            |
+| `typecheck`  | `tsc --noEmit`. Node strips types without checking them, so run this too.                                                             |
 
 ## Routes
 
 Every route under `/api` needs the `x-api-key` header, or it gets a 401.
 
-| Route | Calls | Status codes |
-|---|---|---|
-| `GET /health` | nothing | 200 |
-| `GET /api/commandments` | `commandmentsService.listCommandments` | 200, 401 |
-| `GET /api/commandments/:number` | `commandmentsService.getCommandment` | 200, 400 (not 1-10), 401, 404 |
-| `GET /api/commandments/:number/questions` | `examinationQuestionsService.listQuestions` | 200, 400, 401, 404 |
+| Route                                     | Calls                                       | Status codes                  |
+| ----------------------------------------- | ------------------------------------------- | ----------------------------- |
+| `GET /health`                             | nothing                                     | 200                           |
+| `GET /api/commandments`                   | `commandmentsService.listCommandments`      | 200, 401                      |
+| `GET /api/commandments/:number`           | `commandmentsService.getCommandment`        | 200, 400 (not 1-10), 401, 404 |
+| `GET /api/commandments/:number/questions` | `examinationQuestionsService.listQuestions` | 200, 400, 401, 404            |
 
 `:number` is the commandment number (1-10), not the row `id`. JSON fields are camelCase (`commandmentId`, `questionPosition`) because of Kysely's `CamelCasePlugin`.
 
@@ -71,18 +71,18 @@ Every error response, including an unknown route, is an [RFC 9457](https://www.r
 
 ## Folders, top to bottom
 
-| Folder | Role | Knows about HTTP? |
-|---|---|---|
-| `src/server.ts` | Reads the environment and calls `app.listen`. The only file that reads `process.env`. | yes |
-| `src/app.ts`, `src/error-handler.ts` | `buildApp(options)`: plugins, the `/api` prefix, and the error and not-found handlers | yes |
-| `src/errors.ts` | `AppError` and its codes | no |
-| `src/routes/` | Routes and JSON schemas. The API-key check is in `api.ts`. | yes |
-| `src/services/` | Rules. They throw `AppError` (for example `NOT_FOUND`) and know nothing of HTTP statuses. | no |
-| `src/repositories/` | The only Kysely code | no |
-| `src/plugins/db.ts` | The db plugin (`fastify-plugin`): the `pg` pool and the `Kysely<DB>` instance | yes |
-| `src/db/` | `db.d.ts` (generated) and `types.ts` (row types, `Conn`) | no |
-| `db/` | SQL migrations and the seed | no |
-| `test/` | Service tests with fake repositories, route tests with fake services, and a whole-app test against in-process PGlite | — |
+| Folder                               | Role                                                                                                                 | Knows about HTTP? |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| `src/server.ts`                      | Reads the environment and calls `app.listen`. The only file that reads `process.env`.                                | yes               |
+| `src/app.ts`, `src/error-handler.ts` | `buildApp(options)`: plugins, the `/api` prefix, and the error and not-found handlers                                | yes               |
+| `src/errors.ts`                      | `AppError` and its codes                                                                                             | no                |
+| `src/routes/`                        | Routes and JSON schemas. The API-key check is in `api.ts`.                                                           | yes               |
+| `src/services/`                      | Rules. They throw `AppError` (for example `NOT_FOUND`) and know nothing of HTTP statuses.                            | no                |
+| `src/repositories/`                  | The only Kysely code                                                                                                 | no                |
+| `src/plugins/db.ts`                  | The db plugin (`fastify-plugin`): the `pg` pool and the `Kysely<DB>` instance                                        | yes               |
+| `src/db/`                            | `db.d.ts` (generated) and `types.ts` (row types, `Conn`)                                                             | no                |
+| `db/`                                | SQL migrations and the seed                                                                                          | no                |
+| `test/`                              | Service tests with fake repositories, route tests with fake services, and a whole-app test against in-process PGlite | —                 |
 
 There are no use cases or unit of work, because every route is a single read. Add them, as the demo does, when an operation needs several writes in one transaction.
 

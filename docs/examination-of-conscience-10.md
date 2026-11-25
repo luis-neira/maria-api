@@ -1,6 +1,7 @@
 # First commandment
 
 1. Sins which detract from the honor and worship due to God, such as:
+
 - Neglect of Prayer
 - Superstitious practices
 - Divination
@@ -13,6 +14,7 @@
 - Receiving the Sacrements in a state of mortal sin
 
 2. Those against Faith, such as:
+
 - Willful doubt of any article of Faith
 - Reading or circulating books or writings against Catholic belief or practice
 - Knowingly joining in schismatic or heretical worship
@@ -20,11 +22,13 @@
 - Neglecting means of religious instruction
 
 3. Those against Hope, such as:
+
 - Despair of God's mercy, or want of confidence in power of His Grace to support us in trouble or temptation
 - Murmuring against God's providence
 - Presuming on God's mercy, or on the supposed efficacy of certain pious practices, in order to continue in sin
 
 4. Those against Charity, such as:
+
 - Willfuly rebellious thoughts against God
 - Boasting of sin
 - Violating God's law, or omitting good works, through human respect
@@ -32,6 +36,7 @@
 # Second commandment
 
 ## All irreverence towards God's most Holy Name, such as:
+
 - Cursing and profane swearing
 - False, unlawful and unnecessary oaths
 - Membership in societies condemned by the Church
@@ -41,11 +46,13 @@
 # Third commandment
 
 ## Neglect to hear Mass on Sundays and Holy days of Obligation
+
 - Working or making others work without necessity on such days.
 
 # Fourth commandment
 
 ## For Parents:
+
 - Hating their children
 - Cursing them
 - Giving scandal to the by cursing, drinking, etc.
@@ -58,6 +65,7 @@
 - Sending children to Protestant and other dangerous schools.
 
 ## For Husbands and Wives:
+
 - Ill-usage
 - Putting obstacles to the fulfillment of religious duties
 - Want of gentleness and consideration in regard to each other's faults
@@ -67,6 +75,7 @@
 - Injurious words
 
 ## For the Employed:
+
 - Disrespect to employers
 - Want of obedience in matters wherein one has bound one's self to obey
 - Waste of time
@@ -74,11 +83,13 @@
 - Waste of employer's property, by dishonesty, carelessness, or neglect
 
 ## For all
+
 - Contempt for the laws of our State and Country, as well as the Church
 - Disobedience to lawful authority
 
 # Fifth commandment
-- Unjust taking of human life  (and hence, indirectly and implicity, violence in thought, word, or act which may lead thereto)
+
+- Unjust taking of human life (and hence, indirectly and implicity, violence in thought, word, or act which may lead thereto)
 - Exposing life or limb to danger without reasonable cause
 - Carelessness in leaving about poisons, dangerous drugs, weapons, etc.
 - Desires of revenge
@@ -103,6 +114,7 @@
 - Giving drink to others knowing that they will abuse it
 
 # Seventh and Tenth commandments
+
 - Stealing (What value? What damage done to property or interest?)
 - Possession of ill-gotten goods
 - Exorbitant prices
@@ -118,6 +130,7 @@
 - Neglect to make reasonable efforts and sacrifices in this matter, e.g., by gradually laying up the amount required
 
 # Eighth commandment
+
 - Lying
 - Perjury
 - Frauds, public and private, such as at elections, etc.
@@ -129,4 +142,3 @@
 - Refusing or delaying to restore the good name we have blackened
 - Slander or detraction, and encouraging these in others
 - Baseless accusations, groundless suspicions, rash judgements of others, in our own mind
- 

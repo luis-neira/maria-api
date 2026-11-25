@@ -25,18 +25,18 @@ Path shorthands used in citations:
 
 ### Stack and tooling
 
-| Item | Value | Source |
-|---|---|---|
-| Module system | `"type": "module"` | REF/package.json:3 |
-| Node | `>=22.18` (type stripping on by default from v22.18.0) | REF/package.json:5, https://nodejs.org/api/typescript.html |
-| Runtime deps | `drizzle-orm` 0.45.4, `fastify` 5.12.8, `fastify-plugin` 6.0.1, `pg` 8.23.1 | REF/package.json:16-21 |
-| Dev deps | `@electric-sql/pglite` 0.6.0, `@electric-sql/pglite-socket` 0.3.0, `@types/node` 26.6.6, `@types/pg` 8.23.1, `drizzle-kit` 0.31.11, `pino-pretty` 13.2.0, `typescript` 7.0.2 | REF/package.json:22-30 |
-| Scripts | `db` (pglite-server on 5433, `./.pgdata`), `db:generate`, `db:migrate` (drizzle-kit), `dev` (`node --watch src/server.ts \| pino-pretty`), `start`, `test` (`node --test`), `test:watch`, `typecheck` (`tsc --noEmit`) | REF/package.json:6-15 |
-| tsconfig | `noEmit`, `strict`, `module: nodenext`, `verbatimModuleSyntax`, `erasableSyntaxOnly`, `allowImportingTsExtensions` | REF/tsconfig.json:2-11 |
-| Lint/format | None. No eslint, prettier or neostandard config or dependency | REF/package.json (absent), file listing |
-| Docker/compose | None. PGlite replaces Postgres in dev and tests | REF/README.md:9-20 |
-| `.gitignore` | `node_modules/`, `.pgdata/` | REF/.gitignore:1-2 |
-| Config | No `.env`. The README tells you to `export DATABASE_URL` and `API_KEY` | REF/README.md:13-14, 22 |
+| Item           | Value                                                                                                                                                                                                                  | Source                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Module system  | `"type": "module"`                                                                                                                                                                                                     | REF/package.json:3                                         |
+| Node           | `>=22.18` (type stripping on by default from v22.18.0)                                                                                                                                                                 | REF/package.json:5, https://nodejs.org/api/typescript.html |
+| Runtime deps   | `drizzle-orm` 0.45.4, `fastify` 5.12.8, `fastify-plugin` 6.0.1, `pg` 8.23.1                                                                                                                                            | REF/package.json:16-21                                     |
+| Dev deps       | `@electric-sql/pglite` 0.6.0, `@electric-sql/pglite-socket` 0.3.0, `@types/node` 26.6.6, `@types/pg` 8.23.1, `drizzle-kit` 0.31.11, `pino-pretty` 13.2.0, `typescript` 7.0.2                                           | REF/package.json:22-30                                     |
+| Scripts        | `db` (pglite-server on 5433, `./.pgdata`), `db:generate`, `db:migrate` (drizzle-kit), `dev` (`node --watch src/server.ts \| pino-pretty`), `start`, `test` (`node --test`), `test:watch`, `typecheck` (`tsc --noEmit`) | REF/package.json:6-15                                      |
+| tsconfig       | `noEmit`, `strict`, `module: nodenext`, `verbatimModuleSyntax`, `erasableSyntaxOnly`, `allowImportingTsExtensions`                                                                                                     | REF/tsconfig.json:2-11                                     |
+| Lint/format    | None. No eslint, prettier or neostandard config or dependency                                                                                                                                                          | REF/package.json (absent), file listing                    |
+| Docker/compose | None. PGlite replaces Postgres in dev and tests                                                                                                                                                                        | REF/README.md:9-20                                         |
+| `.gitignore`   | `node_modules/`, `.pgdata/`                                                                                                                                                                                            | REF/.gitignore:1-2                                         |
+| Config         | No `.env`. The README tells you to `export DATABASE_URL` and `API_KEY`                                                                                                                                                 | REF/README.md:13-14, 22                                    |
 
 Intent from the course: TypeScript and ESM only, no build step, JSON Schema for validation and serialization, plugins/encapsulation/decorators, `inject()` + `node:test` (LESSONS/MISSION.md:7-14).
 
@@ -79,22 +79,22 @@ Known limits the reference states: PGlite serializes transactions, so the race i
 
 ## Drizzle→Kysely mapping
 
-| Reference (Drizzle) | Kysely equivalent | Source |
-|---|---|---|
-| `drizzle-orm/node-postgres` `drizzle({ client: pool, schema })` (REF/src/plugins/db.ts:20) | `new Kysely<DB>({ dialect: new PostgresDialect({ pool }) })` | https://kysely.dev/docs/getting-started (Postgres tab); kysely@0.29.9:dist/dialect/postgres/postgres-dialect-config.d.ts:20-28,57 |
-| `pool.end()` in `onClose` (REF/src/plugins/db.ts:22-24) | Keep `pool.end()` and don't call `db.destroy()`. Or ping with ``sql`select 1`.execute(db)`` and call `db.destroy()`. `destroy()` is a no-op if Kysely never initialized its driver | kysely@0.29.9:dist/dialect/postgres/postgres-dialect-config.d.ts:45-53 |
-| `pgTable(...)` in `schema.ts` + `$inferSelect`/`$inferInsert` (REF/src/db/schema.ts) | A `DB` interface of table interfaces. Row types are `Selectable<T>`, `Insertable<T>`, `Updateable<T>`. DB-generated columns use `Generated<T>` or `GeneratedAlways<T>` | https://kysely.dev/docs/getting-started ("Columns that are generated by the database should be marked using the `Generated` type"); kysely@0.29.9:dist/util/column-type.d.ts:51,57 |
-| Schema is the source of truth, SQL is generated from it | Reversed: the SQL migrations are the source of truth, and types are hand-written or introspected from the live DB | https://kysely.dev/docs/generating-types |
-| `type Db = NodePgDatabase<typeof schema>`, `Tx = Parameters<...>`, `Conn = Db \| Tx` (REF/src/db/types.ts) | `type Conn = Kysely<DB>`, because `Transaction<DB> extends Kysely<DB>` | kysely@0.29.9:dist/kysely.d.ts:533 |
-| `db.transaction((tx) => ...)` (REF/src/db/unit-of-work.ts:21) | `db.transaction().execute((trx) => ...)`. A throw means rollback and rethrow. Otherwise it commits | kysely@0.29.9:dist/kysely.d.ts:140-147, 208 |
-| `db.select().from(t).where(eq(t.id, id))` → `[row]` | `db.selectFrom('t').selectAll().where('id', '=', id).executeTakeFirst()` (returns `undefined` when there's no row) | kysely@0.29.9:dist/query-builder/select-query-builder.d.ts:52, 2280 |
-| `db.insert(t).values(v).returning()` | `db.insertInto('t').values(v).returningAll().executeTakeFirstOrThrow()` | kysely-codegen@0.20.0:README.md:132-140 (example); kysely API docs |
-| `.onConflictDoNothing({ target })` (REF/src/repositories/loans-repository.ts:15) | `.onConflict((oc) => oc.column('x').doNothing())` | kysely@0.29.9:dist/query-builder/insert-query-builder.d.ts:558-639 |
-| `db.$count(t)` | `selectFrom('t').select((eb) => eb.fn.countAll().as('n'))`. `pg` returns `count(*)` (int8) as a string by default, so cast or `Number()` it | https://node-postgres.com/features/types (UNVERIFIED for this exact version, not re-read) |
-| camelCase TS ↔ snake_case columns (`bookId: integer('book_id')`, REF/src/db/schema.ts:12) | Either keep snake_case in TS (`commandment_id`), or add `CamelCasePlugin` to the Kysely instance and generate with `kysely-codegen --camel-case` | kysely@0.29.9:dist/index.d.ts (exports `CamelCasePlugin`); kysely-codegen@0.20.0:README.md:160 |
-| `drizzle.config.ts` + `drizzle-kit generate` / `migrate` | No equivalent needed. Keep `pg-migrations apply` (see the migrations section). Optional `.kysely-codegenrc.json` for codegen | kysely-codegen@0.20.0:README.md:370-399 |
-| `drizzle/` (generated, committed) | `db/migrations/*.sql` (hand-written, already exists) | TGT/db/migrations/ |
-| Test: `migrate(drizzle(url), { migrationsFolder })` (REF/test/app.test.ts:23-25) | `applyMigrations({ connection: connect(url), migrationsDirectory: 'db/migrations' })` from `@databases/pg-migrations`, or `pglite.exec()` each `.sql` file in order | TGT/node_modules/@databases/pg-migrations/lib/index.js:4-16; TGT/node_modules/@databases/migrations-base/lib/getPublicApi.d.ts:5-8. Running it programmatically against pglite-socket is UNVERIFIED. The CLI is documented as working (TGT/README.md:5) |
+| Reference (Drizzle)                                                                                        | Kysely equivalent                                                                                                                                                                  | Source                                                                                                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `drizzle-orm/node-postgres` `drizzle({ client: pool, schema })` (REF/src/plugins/db.ts:20)                 | `new Kysely<DB>({ dialect: new PostgresDialect({ pool }) })`                                                                                                                       | https://kysely.dev/docs/getting-started (Postgres tab); kysely@0.29.9:dist/dialect/postgres/postgres-dialect-config.d.ts:20-28,57                                                                                                                       |
+| `pool.end()` in `onClose` (REF/src/plugins/db.ts:22-24)                                                    | Keep `pool.end()` and don't call `db.destroy()`. Or ping with ``sql`select 1`.execute(db)`` and call `db.destroy()`. `destroy()` is a no-op if Kysely never initialized its driver | kysely@0.29.9:dist/dialect/postgres/postgres-dialect-config.d.ts:45-53                                                                                                                                                                                  |
+| `pgTable(...)` in `schema.ts` + `$inferSelect`/`$inferInsert` (REF/src/db/schema.ts)                       | A `DB` interface of table interfaces. Row types are `Selectable<T>`, `Insertable<T>`, `Updateable<T>`. DB-generated columns use `Generated<T>` or `GeneratedAlways<T>`             | https://kysely.dev/docs/getting-started ("Columns that are generated by the database should be marked using the `Generated` type"); kysely@0.29.9:dist/util/column-type.d.ts:51,57                                                                      |
+| Schema is the source of truth, SQL is generated from it                                                    | Reversed: the SQL migrations are the source of truth, and types are hand-written or introspected from the live DB                                                                  | https://kysely.dev/docs/generating-types                                                                                                                                                                                                                |
+| `type Db = NodePgDatabase<typeof schema>`, `Tx = Parameters<...>`, `Conn = Db \| Tx` (REF/src/db/types.ts) | `type Conn = Kysely<DB>`, because `Transaction<DB> extends Kysely<DB>`                                                                                                             | kysely@0.29.9:dist/kysely.d.ts:533                                                                                                                                                                                                                      |
+| `db.transaction((tx) => ...)` (REF/src/db/unit-of-work.ts:21)                                              | `db.transaction().execute((trx) => ...)`. A throw means rollback and rethrow. Otherwise it commits                                                                                 | kysely@0.29.9:dist/kysely.d.ts:140-147, 208                                                                                                                                                                                                             |
+| `db.select().from(t).where(eq(t.id, id))` → `[row]`                                                        | `db.selectFrom('t').selectAll().where('id', '=', id).executeTakeFirst()` (returns `undefined` when there's no row)                                                                 | kysely@0.29.9:dist/query-builder/select-query-builder.d.ts:52, 2280                                                                                                                                                                                     |
+| `db.insert(t).values(v).returning()`                                                                       | `db.insertInto('t').values(v).returningAll().executeTakeFirstOrThrow()`                                                                                                            | kysely-codegen@0.20.0:README.md:132-140 (example); kysely API docs                                                                                                                                                                                      |
+| `.onConflictDoNothing({ target })` (REF/src/repositories/loans-repository.ts:15)                           | `.onConflict((oc) => oc.column('x').doNothing())`                                                                                                                                  | kysely@0.29.9:dist/query-builder/insert-query-builder.d.ts:558-639                                                                                                                                                                                      |
+| `db.$count(t)`                                                                                             | `selectFrom('t').select((eb) => eb.fn.countAll().as('n'))`. `pg` returns `count(*)` (int8) as a string by default, so cast or `Number()` it                                        | https://node-postgres.com/features/types (UNVERIFIED for this exact version, not re-read)                                                                                                                                                               |
+| camelCase TS ↔ snake_case columns (`bookId: integer('book_id')`, REF/src/db/schema.ts:12)                  | Either keep snake_case in TS (`commandment_id`), or add `CamelCasePlugin` to the Kysely instance and generate with `kysely-codegen --camel-case`                                   | kysely@0.29.9:dist/index.d.ts (exports `CamelCasePlugin`); kysely-codegen@0.20.0:README.md:160                                                                                                                                                          |
+| `drizzle.config.ts` + `drizzle-kit generate` / `migrate`                                                   | No equivalent needed. Keep `pg-migrations apply` (see the migrations section). Optional `.kysely-codegenrc.json` for codegen                                                       | kysely-codegen@0.20.0:README.md:370-399                                                                                                                                                                                                                 |
+| `drizzle/` (generated, committed)                                                                          | `db/migrations/*.sql` (hand-written, already exists)                                                                                                                               | TGT/db/migrations/                                                                                                                                                                                                                                      |
+| Test: `migrate(drizzle(url), { migrationsFolder })` (REF/test/app.test.ts:23-25)                           | `applyMigrations({ connection: connect(url), migrationsDirectory: 'db/migrations' })` from `@databases/pg-migrations`, or `pglite.exec()` each `.sql` file in order                | TGT/node_modules/@databases/pg-migrations/lib/index.js:4-16; TGT/node_modules/@databases/migrations-base/lib/getPublicApi.d.ts:5-8. Running it programmatically against pglite-socket is UNVERIFIED. The CLI is documented as working (TGT/README.md:5) |
 
 ### Dialect options
 
@@ -110,15 +110,15 @@ Known limits the reference states: PGlite serializes transactions, so the race i
 
 ### Migrations: pg-migrations vs Kysely Migrator
 
-| | `@databases/pg-migrations` 6.0.0 (current) | Kysely `Migrator` (`kysely/migration`) |
-|---|---|---|
-| File format | `NNNNN-name.sql` (also `.js`/`.ts`), index from the `^(\d+)-` prefix | TS/JS modules exporting `up` (and optional `down`), name = filename, alphanumeric order |
-| Forward-only | No down at all (TGT/README.md:78) | `down` optional, "skipped when migrating down" (kysely@0.29.9:dist/migration/migrator.d.ts:7-16) |
-| Edited-file detection | Yes, `MigrationFileEditedError`, plus missing and order-change errors | No content check. It only checks that names are present and in order ("corrupted migrations") (kysely@0.29.9:dist/migration/migrator.js:517-533) |
-| Transaction | Runs in a transaction (`tx.query` in TGT/node_modules/@databases/pg-migrations/lib/PostgresDatabaseEngine.js:56-130) | Per-run transaction when the dialect supports transactional DDL, unless `disableTransactions` (kysely@0.29.9:dist/migration/migrator.js:434-447) |
-| Tracking tables | `atdatabases_migrations_applied`, `atdatabases_migrations_version` | `kysely_migration`, `kysely_migration_lock` (kysely@0.29.9:dist/migration/migrator.d.ts:2-3) |
-| Plain SQL stays portable to real Postgres | Yes, and it is psql-runnable | Only if each `up` wraps raw ``sql`...` ``. The docs say migrations take `Kysely<any>`, so they are untyped anyway (https://kysely.dev/docs/migrations) |
-| CLI | `pg-migrations apply` (already wired) | Write a script, or use `kysely-ctl` 0.22.0 (peer `kysely >=0.18.1 <0.30.0`, Node >=22). The docs call it "not part of the core, and your mileage may vary" (https://kysely.dev/docs/migrations) |
+|                                           | `@databases/pg-migrations` 6.0.0 (current)                                                                           | Kysely `Migrator` (`kysely/migration`)                                                                                                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File format                               | `NNNNN-name.sql` (also `.js`/`.ts`), index from the `^(\d+)-` prefix                                                 | TS/JS modules exporting `up` (and optional `down`), name = filename, alphanumeric order                                                                                                         |
+| Forward-only                              | No down at all (TGT/README.md:78)                                                                                    | `down` optional, "skipped when migrating down" (kysely@0.29.9:dist/migration/migrator.d.ts:7-16)                                                                                                |
+| Edited-file detection                     | Yes, `MigrationFileEditedError`, plus missing and order-change errors                                                | No content check. It only checks that names are present and in order ("corrupted migrations") (kysely@0.29.9:dist/migration/migrator.js:517-533)                                                |
+| Transaction                               | Runs in a transaction (`tx.query` in TGT/node_modules/@databases/pg-migrations/lib/PostgresDatabaseEngine.js:56-130) | Per-run transaction when the dialect supports transactional DDL, unless `disableTransactions` (kysely@0.29.9:dist/migration/migrator.js:434-447)                                                |
+| Tracking tables                           | `atdatabases_migrations_applied`, `atdatabases_migrations_version`                                                   | `kysely_migration`, `kysely_migration_lock` (kysely@0.29.9:dist/migration/migrator.d.ts:2-3)                                                                                                    |
+| Plain SQL stays portable to real Postgres | Yes, and it is psql-runnable                                                                                         | Only if each `up` wraps raw ``sql`...` ``. The docs say migrations take `Kysely<any>`, so they are untyped anyway (https://kysely.dev/docs/migrations)                                          |
+| CLI                                       | `pg-migrations apply` (already wired)                                                                                | Write a script, or use `kysely-ctl` 0.22.0 (peer `kysely >=0.18.1 <0.30.0`, Node >=22). The docs call it "not part of the core, and your mileage may vary" (https://kysely.dev/docs/migrations) |
 
 Sources for the pg-migrations column: TGT/node_modules/@databases/migrations-base/lib/methods/readMigrationsDir.js:7-29 (file format); TGT/node_modules/@databases/migrations-base/lib/methods/validateMigrationsSequence.d.ts:3-5 (edited-file detection); TGT/node_modules/@databases/pg-migrations/lib/index.js:10 (tracking tables).
 
@@ -130,37 +130,57 @@ Unchanged in shape: `fp` db plugin at the root, feature plugins without `fp` tha
 
 ```ts
 // src/plugins/db.ts (sketch)
-import fp from 'fastify-plugin'
-import { Kysely, PostgresDialect } from 'kysely'
-import { Pool } from 'pg'
-import type { DB } from '../db/types.ts'
+import fp from "fastify-plugin";
+import { Kysely, PostgresDialect } from "kysely";
+import { Pool } from "pg";
+import type { DB } from "../db/types.ts";
 
-declare module 'fastify' {
-  interface FastifyInstance { db: Kysely<DB> }
+declare module "fastify" {
+	interface FastifyInstance {
+		db: Kysely<DB>;
+	}
 }
 
-export default fp<{ connectionString: string }>(async (app, opts) => {
-  const pool = new Pool({ connectionString: opts.connectionString })
-  await pool.query('select 1')                     // fail at boot
-  app.decorate('db', new Kysely<DB>({ dialect: new PostgresDialect({ pool }) }))
-  app.addHook('onClose', async () => { await pool.end() })   // not db.destroy(): see Summary
-}, { name: 'db' })
+export default fp<{ connectionString: string }>(
+	async (app, opts) => {
+		const pool = new Pool({ connectionString: opts.connectionString });
+		await pool.query("select 1"); // fail at boot
+		app.decorate(
+			"db",
+			new Kysely<DB>({ dialect: new PostgresDialect({ pool }) }),
+		);
+		app.addHook("onClose", async () => {
+			await pool.end();
+		}); // not db.destroy(): see Summary
+	},
+	{ name: "db" },
+);
 ```
 
 ```ts
 // src/db/types.ts (sketch of the hand-written variant, not chosen: codegen with --camel-case
 // produces the equivalent in src/db/db.d.ts, with Generated<number> instead of GeneratedAlways)
-import type { GeneratedAlways, Insertable, Kysely, Selectable } from 'kysely'
+import type { GeneratedAlways, Insertable, Kysely, Selectable } from "kysely";
 
-export interface CommandmentsTable { id: GeneratedAlways<number>; number: number; text: string }
-export interface ExaminationQuestionsTable {
-  id: GeneratedAlways<number>; commandmentId: number; questionPosition: number; text: string   // CamelCasePlugin
+export interface CommandmentsTable {
+	id: GeneratedAlways<number>;
+	number: number;
+	text: string;
 }
-export interface DB { commandments: CommandmentsTable; examination_questions: ExaminationQuestionsTable }
+export interface ExaminationQuestionsTable {
+	id: GeneratedAlways<number>;
+	commandmentId: number;
+	questionPosition: number;
+	text: string; // CamelCasePlugin
+}
+export interface DB {
+	commandments: CommandmentsTable;
+	examination_questions: ExaminationQuestionsTable;
+}
 
-export type Commandment = Selectable<CommandmentsTable>
-export type NewCommandment = Insertable<CommandmentsTable>
-export type Conn = Kysely<DB>   // a Transaction<DB> is a Kysely<DB>
+export type Commandment = Selectable<CommandmentsTable>;
+export type NewCommandment = Insertable<CommandmentsTable>;
+export type Conn = Kysely<DB>; // a Transaction<DB> is a Kysely<DB>
 ```
 
 `UnitOfWork.run` becomes `(work) => db.transaction().execute((trx) => work(makeRepos(trx)))`. The target's data is read-only reference data loaded by `db:seed`, so nothing may need a use case or unit of work yet. The reference adds them only for multi-write operations (LESSONS/reference/the-whole-app.html:38).
@@ -213,37 +233,37 @@ maria-api/
     └── commandments-service.test.ts  # fake repository
 ```
 
-| Reference | Target |
-|---|---|
-| REF/src/server.ts, app.ts, error-handler.ts | same paths, copied nearly verbatim |
-| REF/src/plugins/db.ts (Drizzle) | src/plugins/db.ts (Kysely + PostgresDialect) |
-| REF/src/db/schema.ts | gone. Tables live in db/migrations/*.sql, TS shapes are generated into src/db/db.d.ts |
-| REF/src/db/types.ts (`Db/Tx/Conn`) | src/db/types.ts (`DB`, row types, `Conn = Kysely<DB>`) |
-| REF/src/db/unit-of-work.ts | same, using `transaction().execute`, deferred until needed |
-| REF/src/routes, services, repositories | same pattern, commandments/questions domain |
-| REF/drizzle.config.ts, drizzle/ | none. The `db:types` script (or .kysely-codegenrc.json) configures codegen |
-| REF `db` script on 5433 + `./.pgdata` | existing `db:serve` on 54329 + `./data/pgdata` |
-| REF `db:migrate` (drizzle-kit) | existing `db:migrate` (pg-migrations) |
-| (no seed in REF) | existing `db:seed`, `db:reset` |
+| Reference                                   | Target                                                                                |
+| ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| REF/src/server.ts, app.ts, error-handler.ts | same paths, copied nearly verbatim                                                    |
+| REF/src/plugins/db.ts (Drizzle)             | src/plugins/db.ts (Kysely + PostgresDialect)                                          |
+| REF/src/db/schema.ts                        | gone. Tables live in db/migrations/*.sql, TS shapes are generated into src/db/db.d.ts |
+| REF/src/db/types.ts (`Db/Tx/Conn`)          | src/db/types.ts (`DB`, row types, `Conn = Kysely<DB>`)                                |
+| REF/src/db/unit-of-work.ts                  | same, using `transaction().execute`, deferred until needed                            |
+| REF/src/routes, services, repositories      | same pattern, commandments/questions domain                                           |
+| REF/drizzle.config.ts, drizzle/             | none. The `db:types` script (or .kysely-codegenrc.json) configures codegen            |
+| REF `db` script on 5433 + `./.pgdata`       | existing `db:serve` on 54329 + `./data/pgdata`                                        |
+| REF `db:migrate` (drizzle-kit)              | existing `db:migrate` (pg-migrations)                                                 |
+| (no seed in REF)                            | existing `db:seed`, `db:reset`                                                        |
 
 ## Dependencies
 
 All versions are `dist-tags.latest` from `npm view` on 2026-11-24 and match the reference where the reference has the package.
 
-| Package | Version | Type | Note |
-|---|---|---|---|
-| `fastify` | 5.12.8 | dep | same as REF/package.json:18 |
-| `fastify-plugin` | 6.0.1 | dep | same as REF/package.json:19 |
-| `kysely` | 0.29.9 | dep | ESM (`"type": "module"`), `engines.node >=22.0.0`, includes `PGliteDialect` (kysely@0.29.9:package.json) |
-| `pg` | 8.23.1 | dep | same as REF/package.json:20 |
-| `@databases/pg-migrations` | 6.0.0 | dep → consider dev | already in TGT/package.json:16 |
-| `@electric-sql/pglite` | 0.6.0 | dev (REF) / dep (TGT today) | already in TGT/package.json:17 |
-| `@electric-sql/pglite-socket` | 0.3.0 | dev (REF) / dep (TGT today) | peer `@electric-sql/pglite 0.6.0` exact (`npm view`) |
-| `typescript` | 7.0.2 | dev | same as REF/package.json:29, for `tsc --noEmit` only |
-| `@types/pg` | 8.23.1 | dev | same as REF |
-| `@types/node` | 26.6.6 (REF) or 22.20.5 | dev | REF pairs 26.x types with a Node 22 runtime. `@types/node@22` latest is 22.20.5 (`npm view @types/node@22 version`) |
-| `pino-pretty` | 13.2.0 | dev | for `npm run dev` |
-| `kysely-codegen` | 0.20.0 | dev | generates src/db/db.d.ts (decided) |
+| Package                       | Version                 | Type                        | Note                                                                                                                |
+| ----------------------------- | ----------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `fastify`                     | 5.12.8                  | dep                         | same as REF/package.json:18                                                                                         |
+| `fastify-plugin`              | 6.0.1                   | dep                         | same as REF/package.json:19                                                                                         |
+| `kysely`                      | 0.29.9                  | dep                         | ESM (`"type": "module"`), `engines.node >=22.0.0`, includes `PGliteDialect` (kysely@0.29.9:package.json)            |
+| `pg`                          | 8.23.1                  | dep                         | same as REF/package.json:20                                                                                         |
+| `@databases/pg-migrations`    | 6.0.0                   | dep → consider dev          | already in TGT/package.json:16                                                                                      |
+| `@electric-sql/pglite`        | 0.6.0                   | dev (REF) / dep (TGT today) | already in TGT/package.json:17                                                                                      |
+| `@electric-sql/pglite-socket` | 0.3.0                   | dev (REF) / dep (TGT today) | peer `@electric-sql/pglite 0.6.0` exact (`npm view`)                                                                |
+| `typescript`                  | 7.0.2                   | dev                         | same as REF/package.json:29, for `tsc --noEmit` only                                                                |
+| `@types/pg`                   | 8.23.1                  | dev                         | same as REF                                                                                                         |
+| `@types/node`                 | 26.6.6 (REF) or 22.20.5 | dev                         | REF pairs 26.x types with a Node 22 runtime. `@types/node@22` latest is 22.20.5 (`npm view @types/node@22 version`) |
+| `pino-pretty`                 | 13.2.0                  | dev                         | for `npm run dev`                                                                                                   |
+| `kysely-codegen`              | 0.20.0                  | dev                         | generates src/db/db.d.ts (decided)                                                                                  |
 
 Not recommended: `kysely-pglite-dialect` (deprecated, excludes pglite 0.6), `kysely-pglite` (redundant), `kysely-ctl` (only with the Kysely Migrator).
 
@@ -285,14 +305,14 @@ Keep the existing four unchanged (TGT/package.json:8-13) and add the reference's
 
 Local files (read in full unless noted):
 
-- REF: package.json, tsconfig.json, drizzle.config.ts, .gitignore, README.md, src/{server,app,error-handler}.ts, src/plugins/db.ts, src/db/{schema,types,unit-of-work}.ts, src/routes/{api,books,reviews}.ts, src/services/*.ts, src/repositories/*.ts, src/use-cases/*.ts, test/*.ts, drizzle/*.sql, drizzle/meta/_journal.json
+- REF: package.json, tsconfig.json, drizzle.config.ts, .gitignore, README.md, src/{server,app,error-handler}.ts, src/plugins/db.ts, src/db/{schema,types,unit-of-work}.ts, src/routes/{api,books,reviews}.ts, src/services/_.ts, src/repositories/_.ts, src/use-cases/_.ts, test/_.ts, drizzle/*.sql, drizzle/meta/_journal.json
 - LESSONS: MISSION.md, NOTES.md, reference/{the-whole-app,services-and-data,architecture}.html, lessons/0005-services-and-repositories.html (excerpts)
 - TGT: package.json, .env, .gitignore, README.md, db/migrations/*.sql, db/seed.sql
 - TGT/node_modules/@databases/{pg-migrations,migrations-base}/lib/* (excerpts), TGT/node_modules/@electric-sql/pglite-socket/{README.md,dist/index.d.ts,dist/chunk-4D4OME7M.js}
 
 npm tarballs (`npm pack`, registry = configured company feed):
 
-- kysely@0.29.9: package.json, README.md, dist/kysely.d.ts, dist/index.d.ts, dist/dialect/pglite/*, dist/dialect/postgres/{postgres-dialect-config.d.ts,postgres-introspector.js}, dist/migration/*, dist/util/column-type.d.ts, dist/query-builder/*
+- kysely@0.29.9: package.json, README.md, dist/kysely.d.ts, dist/index.d.ts, dist/dialect/pglite/_, dist/dialect/postgres/{postgres-dialect-config.d.ts,postgres-introspector.js}, dist/migration/_, dist/util/column-type.d.ts, dist/query-builder/*
 - kysely-codegen@0.20.0: README.md, dist/generator/transformer/transformer.js
 - kysely-pglite-dialect@1.4.0: README.md
 - kysely-pglite@0.6.1: package.json, README.md

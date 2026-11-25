@@ -1,26 +1,26 @@
-import Fastify, { type FastifyServerOptions } from 'fastify'
-import db from './plugins/db.ts'
-import apiRoutes from './routes/api.ts'
-import { errorHandler, notFoundHandler } from './error-handler.ts'
+import Fastify, { type FastifyServerOptions } from "fastify";
+import { errorHandler, notFoundHandler } from "./error-handler.ts";
+import db from "./plugins/db.ts";
+import apiRoutes from "./routes/api.ts";
 
 // Everything the app needs from the outside. Only server.ts reads process.env.
 export interface AppOptions extends FastifyServerOptions {
-  databaseUrl: string
-  apiKey: string
+	databaseUrl: string;
+	apiKey: string;
 }
 
-export function buildApp ({ databaseUrl, apiKey, ...fastifyOpts }: AppOptions) {
-  const app = Fastify(fastifyOpts)
+export function buildApp({ databaseUrl, apiKey, ...fastifyOpts }: AppOptions) {
+	const app = Fastify(fastifyOpts);
 
-  // Set at the root, so every plugin inherits them
-  app.setErrorHandler(errorHandler)
-  app.setNotFoundHandler(notFoundHandler)
+	// Set at the root, so every plugin inherits them
+	app.setErrorHandler(errorHandler);
+	app.setNotFoundHandler(notFoundHandler);
 
-  app.register(db, { connectionString: databaseUrl })
-  app.register(apiRoutes, { prefix: '/api', apiKey })
+	app.register(db, { connectionString: databaseUrl });
+	app.register(apiRoutes, { prefix: "/api", apiKey });
 
-  // Outside /api: for the load balancer, not part of the API
-  app.get('/health', async () => ({ status: 'ok' }))
+	// Outside /api: for the load balancer, not part of the API
+	app.get("/health", async () => ({ status: "ok" }));
 
-  return app
+	return app;
 }
