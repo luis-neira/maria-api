@@ -37,52 +37,155 @@ FROM (VALUES
 JOIN commandments c ON c.number = q.commandment_number
 ON CONFLICT (commandment_id, question_position) DO UPDATE SET text = excluded.text;
 
--- Offense categories and offenses transcribed verbatim (including spelling) from
--- docs/examination-of-conscience-10.md. Only commandments 1-2 are transcribed so far.
--- Keyed on text: editing text inserts a new row; the old one remains until `npm run db:reset`.
+-- Offense categories and offenses transcribed from docs/examination-of-conscience-10.md,
+-- with the trailing "such as:" removed and typos corrected.
+-- Commandments 6 and 9 have no Offenses in the source.
+-- Categories have no unique key: "General" repeats across Commandments, and the Seventh and
+-- Tenth share one category (see docs/adr/0001-offense-categories-shared-across-commandments.md).
+-- A category is matched by (Commandment, text) via the junction table, so re-running does not
+-- duplicate. Editing text inserts a new row; the old one remains until `npm run db:reset`.
 
-INSERT INTO offense_categories (commandment_id, text)
-SELECT c.id, oc.text
-FROM (VALUES
-  (1, 'Sins which detract from the honor and worpship due to God, such as:'),
-  (1, 'Those against Faith, such as:'),
-  (1, 'Those against Hope, such as:'),
-  (1, 'Those against Charity, such as:'),
-  (2, 'All irreverence towards God''s most Holy Name, such as:')
-) AS oc (commandment_number, text)
-JOIN commandments c ON c.number = oc.commandment_number
-ON CONFLICT (commandment_id, text) DO NOTHING;
+DO $$
+DECLARE
+  def record;
+  n integer;
+  cat_id integer;
+BEGIN
+  FOR def IN
+    SELECT * FROM (VALUES
+      (ARRAY[1],     'Sins which detract from the honor and worship due to God'),
+      (ARRAY[1],     'Those against Faith'),
+      (ARRAY[1],     'Those against Hope'),
+      (ARRAY[1],     'Those against Charity'),
+      (ARRAY[2],     'All irreverence towards God''s most Holy Name'),
+      (ARRAY[3],     'Neglect to hear Mass on Sundays and Holy days of Obligation'),
+      (ARRAY[4],     'For Parents'),
+      (ARRAY[4],     'For Husbands and Wives'),
+      (ARRAY[4],     'For the Employed'),
+      (ARRAY[4],     'For all'),
+      (ARRAY[5],     'General'),
+      (ARRAY[7, 10], 'General'),
+      (ARRAY[8],     'General')
+    ) AS d (commandment_numbers, text)
+  LOOP
+    SELECT oc.id INTO cat_id
+    FROM offense_categories oc
+    JOIN commandment_offense_categories l ON l.offense_category_id = oc.id
+    JOIN commandments c ON c.id = l.commandment_id
+    WHERE oc.text = def.text AND c.number = def.commandment_numbers[1];
 
+    IF cat_id IS NULL THEN
+      INSERT INTO offense_categories (text) VALUES (def.text) RETURNING id INTO cat_id;
+      INSERT INTO commandment_offense_categories (commandment_id, offense_category_id)
+      SELECT c.id, cat_id FROM commandments c WHERE c.number = ANY (def.commandment_numbers);
+    END IF;
+  END LOOP;
+END $$;
+
+-- Offenses are listed by the first Commandment of their category (the shared list uses 7).
 INSERT INTO offenses (offense_category_id, text)
 SELECT oc.id, o.text
 FROM (VALUES
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Neglect of Prayer'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Superstitious practices'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Divination'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Consulting fortune-tellers'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Attaching undue importance to dreams, omens'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Tempting God by exposing one''s self to danger of soul, life or health, without grave cause'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Sacrilege'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Profane or superstitious use of blessed objects'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Profanation of places or things consecrated to God'),
-  (1, 'Sins which detract from the honor and worpship due to God, such as:', 'Receiving the Sacrements in a state of mortal sin'),
-  (1, 'Those against Faith, such as:', 'Willful doubt of any article of Faith'),
-  (1, 'Those against Faith, such as:', 'Reading or circulating books or writings against Catholic belief or practice'),
-  (1, 'Those against Faith, such as:', 'Knowingly joining in schismatic or heretical worship'),
-  (1, 'Those against Faith, such as:', 'Denying one''s religion'),
-  (1, 'Those against Faith, such as:', 'Neglecting means of religious instruction'),
-  (1, 'Those against Hope, such as:', 'Despair of God''s mercy, or want of confidence in power of His Grace to support us in trouble or temptation'),
-  (1, 'Those against Hope, such as:', 'Murmuring against God''s providence'),
-  (1, 'Those against Hope, such as:', 'Presuming on God''s mercy, or on the supposed efficacy of certain pious practices, in order to continue in sin'),
-  (1, 'Those against Charity, such as:', 'Willfuly rebellious thoughts against God'),
-  (1, 'Those against Charity, such as:', 'Boasting of sin'),
-  (1, 'Those against Charity, such as:', 'Violating God''s law, or omitting good works, through human respect'),
-  (2, 'All irreverence towards God''s most Holy Name, such as:', 'Cursing and profane swearing'),
-  (2, 'All irreverence towards God''s most Holy Name, such as:', 'False, unlawful and unnecessary oaths'),
-  (2, 'All irreverence towards God''s most Holy Name, such as:', 'Membership in societies condemned by the Church'),
-  (2, 'All irreverence towards God''s most Holy Name, such as:', 'Breaking or deferring lawful vows'),
-  (2, 'All irreverence towards God''s most Holy Name, such as:', 'Irreverence in Divine Service, and in churches and holy places even when service is not going on.')
+  (1, 'Sins which detract from the honor and worship due to God', 'Neglect of Prayer'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Superstitious practices'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Divination'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Consulting fortune-tellers'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Attaching undue importance to dreams, omens'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Tempting God by exposing one''s self to danger of soul, life or health, without grave cause'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Sacrilege'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Profane or superstitious use of blessed objects'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Profanation of places or things consecrated to God'),
+  (1, 'Sins which detract from the honor and worship due to God', 'Receiving the Sacraments in a state of mortal sin'),
+  (1, 'Those against Faith', 'Willful doubt of any article of Faith'),
+  (1, 'Those against Faith', 'Reading or circulating books or writings against Catholic belief or practice'),
+  (1, 'Those against Faith', 'Knowingly joining in schismatic or heretical worship'),
+  (1, 'Those against Faith', 'Denying one''s religion'),
+  (1, 'Those against Faith', 'Neglecting means of religious instruction'),
+  (1, 'Those against Hope', 'Despair of God''s mercy, or want of confidence in power of His Grace to support us in trouble or temptation'),
+  (1, 'Those against Hope', 'Murmuring against God''s providence'),
+  (1, 'Those against Hope', 'Presuming on God''s mercy, or on the supposed efficacy of certain pious practices, in order to continue in sin'),
+  (1, 'Those against Charity', 'Willfully rebellious thoughts against God'),
+  (1, 'Those against Charity', 'Boasting of sin'),
+  (1, 'Those against Charity', 'Violating God''s law, or omitting good works, through human respect'),
+  (2, 'All irreverence towards God''s most Holy Name', 'Cursing and profane swearing'),
+  (2, 'All irreverence towards God''s most Holy Name', 'False, unlawful and unnecessary oaths'),
+  (2, 'All irreverence towards God''s most Holy Name', 'Membership in societies condemned by the Church'),
+  (2, 'All irreverence towards God''s most Holy Name', 'Breaking or deferring lawful vows'),
+  (2, 'All irreverence towards God''s most Holy Name', 'Irreverence in Divine Service, and in churches and holy places even when service is not going on.'),
+  (3, 'Neglect to hear Mass on Sundays and Holy days of Obligation', 'Working or making others work without necessity on such days.'),
+  (4, 'For Parents', 'Hating their children'),
+  (4, 'For Parents', 'Cursing them'),
+  (4, 'For Parents', 'Giving scandal to them by cursing, drinking, etc.'),
+  (4, 'For Parents', 'Allowing them to grow up in ignorance, idleness, or sin'),
+  (4, 'For Parents', 'Showing habitual partiality without cause'),
+  (4, 'For Parents', 'Deferring their children''s Baptism'),
+  (4, 'For Parents', 'Neglecting to watch over their bodily health, their religious instruction, the company they keep, the books they read, etc.'),
+  (4, 'For Parents', 'Failing to correct them when needful'),
+  (4, 'For Parents', 'Being harsh or cruel in correction'),
+  (4, 'For Parents', 'Sending children to Protestant and other dangerous schools.'),
+  (4, 'For Husbands and Wives', 'Ill-usage'),
+  (4, 'For Husbands and Wives', 'Putting obstacles to the fulfillment of religious duties'),
+  (4, 'For Husbands and Wives', 'Want of gentleness and consideration in regard to each other''s faults'),
+  (4, 'For Husbands and Wives', 'Unreasonable jealousy'),
+  (4, 'For Husbands and Wives', 'Neglect of household duties'),
+  (4, 'For Husbands and Wives', 'Sulkiness'),
+  (4, 'For Husbands and Wives', 'Injurious words'),
+  (4, 'For the Employed', 'Disrespect to employers'),
+  (4, 'For the Employed', 'Want of obedience in matters wherein one has bound one''s self to obey'),
+  (4, 'For the Employed', 'Waste of time'),
+  (4, 'For the Employed', 'Neglect of work'),
+  (4, 'For the Employed', 'Waste of employer''s property, by dishonesty, carelessness, or neglect'),
+  (4, 'For all', 'Contempt for the laws of our State and Country, as well as the Church'),
+  (4, 'For all', 'Disobedience to lawful authority'),
+  (5, 'General', 'Unjust taking of human life (and hence, indirectly and implicitly, violence in thought, word, or act which may lead thereto)'),
+  (5, 'General', 'Exposing life or limb to danger without reasonable cause'),
+  (5, 'General', 'Carelessness in leaving about poisons, dangerous drugs, weapons, etc.'),
+  (5, 'General', 'Desires of revenge'),
+  (5, 'General', 'Quarrels'),
+  (5, 'General', 'Fights'),
+  (5, 'General', 'Showing aversion or contempt for others'),
+  (5, 'General', 'Refusing to speak to them when addressed'),
+  (5, 'General', 'Ignoring offers of reconciliation, especially between relatives'),
+  (5, 'General', 'Cherishing an unforgiving spirit'),
+  (5, 'General', 'Raillery and ridicule'),
+  (5, 'General', 'Insults'),
+  (5, 'General', 'Irritating words and actions'),
+  (5, 'General', 'Sadness at another''s prosperity'),
+  (5, 'General', 'Rejoicing over another''s misfortune'),
+  (5, 'General', 'Jealousy at attentions shown to others'),
+  (5, 'General', 'Tyrannical behavior'),
+  (5, 'General', 'Inducing others to sin by word or example'),
+  (5, 'General', 'Gluttony'),
+  (5, 'General', 'Drunkenness'),
+  (5, 'General', 'Rash use of opiates'),
+  (5, 'General', 'Injury to health by over-indulgence'),
+  (5, 'General', 'Giving drink to others knowing that they will abuse it'),
+  (7, 'General', 'Stealing (What value? What damage done to property or interest?)'),
+  (7, 'General', 'Possession of ill-gotten goods'),
+  (7, 'General', 'Exorbitant prices'),
+  (7, 'General', 'False weights and measures'),
+  (7, 'General', 'Cheating'),
+  (7, 'General', 'Adulteration of wares'),
+  (7, 'General', 'Careless or malicious injury to the property of others'),
+  (7, 'General', 'Cheating at play'),
+  (7, 'General', 'Appropriation of what is lent or found without reasonable pains to return it or to find its owner'),
+  (7, 'General', 'Concealment of fraud, theft, or damage when in duty bound to give information'),
+  (7, 'General', 'Petty thefts'),
+  (7, 'General', 'Culpable delay in paying lawful debts, of restitution, when able to make it'),
+  (7, 'General', 'Neglect to make reasonable efforts and sacrifices in this matter, e.g., by gradually laying up the amount required'),
+  (8, 'General', 'Lying'),
+  (8, 'General', 'Perjury'),
+  (8, 'General', 'Frauds, public and private, such as at elections, etc.'),
+  (8, 'General', 'Malicious falsehoods'),
+  (8, 'General', 'Lies for unjust or bad ends'),
+  (8, 'General', 'Lies against character, especially if told publicly'),
+  (8, 'General', 'Revealing secrets'),
+  (8, 'General', 'Publishing discreditable secrets about others'),
+  (8, 'General', 'Refusing or delaying to restore the good name we have blackened'),
+  (8, 'General', 'Slander or detraction, and encouraging these in others'),
+  (8, 'General', 'Baseless accusations, groundless suspicions, rash judgements of others, in our own mind')
 ) AS o (commandment_number, category_text, text)
 JOIN commandments c ON c.number = o.commandment_number
-JOIN offense_categories oc ON oc.commandment_id = c.id AND oc.text = o.category_text
+JOIN commandment_offense_categories l ON l.commandment_id = c.id
+JOIN offense_categories oc ON oc.id = l.offense_category_id AND oc.text = o.category_text
 ON CONFLICT (offense_category_id, text) DO NOTHING;

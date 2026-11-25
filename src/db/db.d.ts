@@ -10,6 +10,11 @@ export type Generated<T> =
 		? ColumnType<S, I | undefined, U>
 		: ColumnType<T, T | undefined, T>;
 
+export interface CommandmentOffenseCategories {
+	commandmentId: number;
+	offenseCategoryId: number;
+}
+
 export interface Commandments {
 	id: Generated<number>;
 	number: number;
@@ -23,7 +28,21 @@ export interface ExaminationQuestions {
 	text: string;
 }
 
+export interface OffenseCategories {
+	id: Generated<number>;
+	text: string;
+}
+
+export interface Offenses {
+	id: Generated<number>;
+	offenseCategoryId: number;
+	text: string;
+}
+
 export interface DB {
+	commandmentOffenseCategories: CommandmentOffenseCategories;
 	commandments: Commandments;
 	examinationQuestions: ExaminationQuestions;
+	offenseCategories: OffenseCategories;
+	offenses: Offenses;
 }
