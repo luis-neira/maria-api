@@ -1,4 +1,4 @@
-# maria-schema
+# maria-api
 
 Proof of concept: a read-only Fastify API, plus the database behind it, for the Ten Commandments and the examination-of-conscience questions from the USCCB leaflet in [`docs/`](docs/Examination-of-Conscience-Ten-Commandments.pdf).
 

@@ -1,5 +1,5 @@
 {
-  "name": "maria-schema",
+  "name": "maria-api",
   "type": "module",
   "private": true,
   "engines": {

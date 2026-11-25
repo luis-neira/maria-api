@@ -1,4 +1,4 @@
-# Applying the Fastify "books-api demo" design to maria-schema, with Kysely instead of Drizzle
+# Applying the Fastify "books-api demo" design to maria-api, with Kysely instead of Drizzle
 
 Researched 2026-11-24. Nothing in either repo was changed. Updated the same day with the user's decisions (see [Decisions](#decisions)) and the target's current table, column and script names.
 
@@ -6,7 +6,7 @@ Path shorthands used in citations:
 
 - `REF/` = `/Users/luis.neira/code/sandbox/learning/matteo-fastify/fastify-lessons/hands-on-exercise/demo/`
 - `LESSONS/` = `/Users/luis.neira/code/sandbox/learning/matteo-fastify/fastify-lessons/`
-- `TGT/` = `/Users/luis.neira/code/sandbox/learning/poc/maria-schema/`
+- `TGT/` = `/Users/luis.neira/code/sandbox/learning/poc/maria-api/`
 - `kysely@0.29.9:<path>`, `kysely-codegen@0.20.0:<path>` and similar = a file inside the published npm tarball, fetched with `npm pack <pkg>@<ver>` from the configured registry.
 - `TGT/node_modules/...` = installed package source in the target.
 
@@ -179,7 +179,7 @@ export type Conn = Kysely<DB>   // a Transaction<DB> is a Kysely<DB>
 ## Proposed target layout
 
 ```
-maria-schema/
+maria-api/
 ├── package.json            # + "type": "module", engines, new scripts and deps
 ├── tsconfig.json           # copy of REF/tsconfig.json; include ["src", "test"]
 ├── .env                    # unchanged (DATABASE_URL only); API_KEY goes in .env.local
