@@ -67,6 +67,31 @@ async function insertQuestion(
 	);
 }
 
+async function insertCategory(commandmentNumber: number, text: string) {
+	await pglite.query(
+		`INSERT INTO offense_categories (commandment_id, text)
+     SELECT id, $2 FROM commandments WHERE number = $1`,
+		[commandmentNumber, text],
+	);
+}
+
+// With a category name, the Offense goes in that category of the same Commandment.
+// A category name that matches nothing is a mistake in the test, so it throws.
+async function insertOffense(
+	commandmentNumber: number,
+	text: string,
+	categoryText?: string,
+) {
+	const { affectedRows } = await pglite.query(
+		`INSERT INTO offenses (commandment_id, offense_category_id, text)
+     SELECT c.id, oc.id, $2 FROM commandments c
+     LEFT JOIN offense_categories oc ON oc.commandment_id = c.id AND oc.text = $3
+     WHERE c.number = $1 AND ($3::text IS NULL OR oc.id IS NOT NULL)`,
+		[commandmentNumber, text, categoryText ?? null],
+	);
+	assert.equal(affectedRows, 1, `no Offense inserted for "${text}"`);
+}
+
 test("/health is public", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());
@@ -83,6 +108,7 @@ test("/api needs an API key, at every depth", async (t) => {
 		"/api/commandments",
 		"/api/commandments/1",
 		"/api/commandments/1/questions",
+		"/api/commandments/1/offenses",
 	]) {
 		const res = await app.inject({ method: "GET", url });
 		assert.equal(res.statusCode, 401, url);
@@ -223,6 +249,132 @@ test("questions for a missing commandment are a 404", async (t) => {
 		title: "Not Found",
 		status: 404,
 		detail: "Commandment 9 not found.",
+	});
+});
+
+test("offenses in no category come back alphabetically, with no categories", async (t) => {
+	await insertCommandment(1, "I am the Lord your God.");
+	await insertOffense(1, "Superstition");
+	await insertOffense(1, "Despair of God's mercy");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/commandments/1/offenses",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), {
+		categories: [],
+		uncategorized: [
+			{ id: 2, text: "Despair of God's mercy" },
+			{ id: 1, text: "Superstition" },
+		],
+	});
+});
+
+test("an offense in a category is not uncategorized", async (t) => {
+	await insertCommandment(1, "I am the Lord your God.");
+	await insertCategory(1, "Those against Faith");
+	await insertOffense(
+		1,
+		"Willful doubt of any article of Faith",
+		"Those against Faith",
+	);
+	await insertOffense(1, "Superstition");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/commandments/1/offenses",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), {
+		categories: [],
+		uncategorized: [{ id: 2, text: "Superstition" }],
+	});
+});
+
+test("a commandment with no offenses has both lists empty", async (t) => {
+	await insertCommandment(6, "You shall not commit adultery.");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/commandments/6/offenses",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), { categories: [], uncategorized: [] });
+});
+
+test("offenses with the same wording under two commandments stay with their own", async (t) => {
+	await insertCommandment(7, "You shall not steal.");
+	await insertCommandment(10, "You shall not covet your neighbor's goods.");
+	await insertOffense(7, "Envy");
+	await insertOffense(10, "Envy");
+	await insertOffense(10, "Greed");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/commandments/7/offenses",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), {
+		categories: [],
+		uncategorized: [{ id: 1, text: "Envy" }],
+	});
+});
+
+test("offenses for a missing commandment are a 404, a number outside 1-10 is a 400", async (t) => {
+	const app = createApp();
+	t.after(() => app.close());
+
+	const missing = await app.inject({
+		method: "GET",
+		url: "/api/commandments/9/offenses",
+		headers,
+	});
+	assert.equal(missing.statusCode, 404);
+	assert.equal(
+		missing.headers["content-type"],
+		"application/problem+json; charset=utf-8",
+	);
+	assert.deepEqual(missing.json(), {
+		title: "Not Found",
+		status: 404,
+		detail: "Commandment 9 not found.",
+	});
+
+	const outOfRange = await app.inject({
+		method: "GET",
+		url: "/api/commandments/0/offenses",
+		headers,
+	});
+	assert.equal(outOfRange.statusCode, 400);
+	assert.deepEqual(outOfRange.json(), {
+		title: "Bad Request",
+		status: 400,
+		detail: "params/number must be >= 1",
+	});
+
+	const tooHigh = await app.inject({
+		method: "GET",
+		url: "/api/commandments/11/offenses",
+		headers,
+	});
+	assert.equal(tooHigh.statusCode, 400);
+	assert.deepEqual(tooHigh.json(), {
+		title: "Bad Request",
+		status: 400,
+		detail: "params/number must be <= 10",
 	});
 });
 
