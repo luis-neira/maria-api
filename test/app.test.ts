@@ -274,7 +274,77 @@ test("offenses in no category come back alphabetically, with no categories", asy
 	});
 });
 
-test("an offense in a category is not uncategorized", async (t) => {
+test("categories and the offenses in each come back alphabetically", async (t) => {
+	await insertCommandment(1, "I am the Lord your God.");
+	await insertCategory(1, "Those against Hope");
+	await insertCategory(1, "Those against Faith");
+	await insertOffense(
+		1,
+		"Willful doubt of any article of Faith",
+		"Those against Faith",
+	);
+	await insertOffense(1, "Heresy", "Those against Faith");
+	await insertOffense(1, "Presumption", "Those against Hope");
+	await insertOffense(1, "Despair of God's mercy", "Those against Hope");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/commandments/1/offenses",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), {
+		categories: [
+			{
+				id: 2,
+				text: "Those against Faith",
+				offenses: [
+					{ id: 2, text: "Heresy" },
+					{ id: 1, text: "Willful doubt of any article of Faith" },
+				],
+			},
+			{
+				id: 1,
+				text: "Those against Hope",
+				offenses: [
+					{ id: 4, text: "Despair of God's mercy" },
+					{ id: 3, text: "Presumption" },
+				],
+			},
+		],
+		uncategorized: [],
+	});
+});
+
+test("a category with no offenses is left out", async (t) => {
+	await insertCommandment(1, "I am the Lord your God.");
+	await insertCategory(1, "Those against Charity");
+	await insertCategory(1, "Those against Faith");
+	await insertOffense(1, "Heresy", "Those against Faith");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/commandments/1/offenses",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), {
+		categories: [
+			{
+				id: 2,
+				text: "Those against Faith",
+				offenses: [{ id: 1, text: "Heresy" }],
+			},
+		],
+		uncategorized: [],
+	});
+});
+
+test("a commandment with offenses in and out of categories fills both lists", async (t) => {
 	await insertCommandment(1, "I am the Lord your God.");
 	await insertCategory(1, "Those against Faith");
 	await insertOffense(
@@ -293,7 +363,13 @@ test("an offense in a category is not uncategorized", async (t) => {
 	});
 	assert.equal(res.statusCode, 200);
 	assert.deepEqual(res.json(), {
-		categories: [],
+		categories: [
+			{
+				id: 1,
+				text: "Those against Faith",
+				offenses: [{ id: 1, text: "Willful doubt of any article of Faith" }],
+			},
+		],
 		uncategorized: [{ id: 2, text: "Superstition" }],
 	});
 });

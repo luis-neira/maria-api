@@ -33,12 +33,23 @@ const offenseSchema = {
 	},
 } as const;
 
+const offenseCategorySchema = {
+	type: "object",
+	required: ["id", "text", "offenses"],
+	additionalProperties: false,
+	properties: {
+		id: { type: "integer" },
+		text: { type: "string" },
+		offenses: { type: "array", items: offenseSchema },
+	},
+} as const;
+
 const commandmentOffensesSchema = {
 	type: "object",
 	required: ["categories", "uncategorized"],
 	additionalProperties: false,
 	properties: {
-		categories: { type: "array", maxItems: 0 }, // grouping by category is not served yet
+		categories: { type: "array", items: offenseCategorySchema },
 		uncategorized: { type: "array", items: offenseSchema },
 	},
 } as const;
