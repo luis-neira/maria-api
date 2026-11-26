@@ -1,16 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { ListCommandmentQuestions } from "./list-commandment-questions.ts";
+import type { CommandmentQuestionsService } from "../services/commandment-questions-service.ts";
+import { commandmentNumberParams } from "./schemas/commandment-params.ts";
 
 interface CommandmentQuestionsOptions {
-	listCommandmentQuestions: ListCommandmentQuestions;
+	commandmentQuestions: CommandmentQuestionsService;
 }
-
-// number comes from the prefix '/:number/questions'
-const params = {
-	type: "object",
-	required: ["number"],
-	properties: { number: { type: "integer", minimum: 1, maximum: 10 } },
-} as const;
 
 const questionSchema = {
 	type: "object",
@@ -29,11 +23,12 @@ const commandmentQuestionsRoutes: FastifyPluginAsync<
 		"/",
 		{
 			schema: {
-				params,
+				params: commandmentNumberParams,
 				response: { 200: { type: "array", items: questionSchema } },
 			},
 		},
-		async (request) => opts.listCommandmentQuestions(request.params.number),
+		async (request) =>
+			opts.commandmentQuestions.listByCommandmentNumber(request.params.number),
 	);
 };
 

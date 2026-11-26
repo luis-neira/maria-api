@@ -1,16 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { ListCommandmentOffenses } from "./list-commandment-offenses.ts";
+import type { OffensesService } from "../services/offenses-service.ts";
+import { commandmentNumberParams } from "./schemas/commandment-params.ts";
 
 interface OffensesOptions {
-	listCommandmentOffenses: ListCommandmentOffenses;
+	offenses: OffensesService;
 }
-
-// number comes from the prefix '/:number/offenses'
-const params = {
-	type: "object",
-	required: ["number"],
-	properties: { number: { type: "integer", minimum: 1, maximum: 10 } },
-} as const;
 
 const offenseSchema = {
 	type: "object",
@@ -49,8 +43,14 @@ const offensesRoutes: FastifyPluginAsync<OffensesOptions> = async (
 ) => {
 	app.get<{ Params: { number: number } }>(
 		"/",
-		{ schema: { params, response: { 200: commandmentOffensesSchema } } },
-		async (request) => opts.listCommandmentOffenses(request.params.number),
+		{
+			schema: {
+				params: commandmentNumberParams,
+				response: { 200: commandmentOffensesSchema },
+			},
+		},
+		async (request) =>
+			opts.offenses.listByCommandmentNumber(request.params.number),
 	);
 };
 

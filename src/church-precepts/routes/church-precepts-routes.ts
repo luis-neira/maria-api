@@ -1,14 +1,12 @@
 import type { FastifyPluginAsync } from "fastify";
-import { churchPreceptNumberParams } from "./church-precept-params.ts";
+import type { ChurchPreceptQuestionsService } from "../services/church-precept-questions-service.ts";
+import type { ChurchPreceptsService } from "../services/church-precepts-service.ts";
 import churchPreceptQuestionsRoutes from "./church-precept-questions-routes.ts";
-import type { GetChurchPreceptByNumber } from "./get-church-precept-by-number.ts";
-import type { ListChurchPreceptQuestions } from "./list-church-precept-questions.ts";
-import type { ListChurchPrecepts } from "./list-church-precepts.ts";
+import { churchPreceptNumberParams } from "./schemas/church-precept-params.ts";
 
 export interface ChurchPreceptsOptions {
-	listChurchPrecepts: ListChurchPrecepts;
-	getChurchPreceptByNumber: GetChurchPreceptByNumber;
-	listChurchPreceptQuestions: ListChurchPreceptQuestions;
+	churchPrecepts: ChurchPreceptsService;
+	churchPreceptQuestions: ChurchPreceptQuestionsService;
 }
 
 const churchPreceptSchema = {
@@ -31,7 +29,7 @@ const churchPreceptsRoutes: FastifyPluginAsync<ChurchPreceptsOptions> = async (
 				response: { 200: { type: "array", items: churchPreceptSchema } },
 			},
 		},
-		async () => opts.listChurchPrecepts(),
+		async () => opts.churchPrecepts.list(),
 	);
 
 	app.get<{ Params: { number: number } }>(
@@ -42,12 +40,12 @@ const churchPreceptsRoutes: FastifyPluginAsync<ChurchPreceptsOptions> = async (
 				response: { 200: churchPreceptSchema },
 			},
 		},
-		async (request) => opts.getChurchPreceptByNumber(request.params.number),
+		async (request) => opts.churchPrecepts.getByNumber(request.params.number),
 	);
 
 	app.register(churchPreceptQuestionsRoutes, {
 		prefix: "/:number/questions",
-		listChurchPreceptQuestions: opts.listChurchPreceptQuestions,
+		churchPreceptQuestions: opts.churchPreceptQuestions,
 	});
 };
 

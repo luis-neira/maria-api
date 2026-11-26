@@ -1,18 +1,16 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createChurchPreceptQuestionsRepository } from "../church-precepts/church-precept-questions-repository.ts";
-import { createChurchPreceptsRepository } from "../church-precepts/church-precepts-repository.ts";
-import churchPreceptsRoutes from "../church-precepts/church-precepts-routes.ts";
-import { createGetChurchPreceptByNumber } from "../church-precepts/get-church-precept-by-number.ts";
-import { createListChurchPreceptQuestions } from "../church-precepts/list-church-precept-questions.ts";
-import { createListChurchPrecepts } from "../church-precepts/list-church-precepts.ts";
-import { createCommandmentQuestionsRepository } from "../commandments/commandment-questions-repository.ts";
-import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
-import commandmentsRoutes from "../commandments/commandments-routes.ts";
-import { createGetCommandmentByNumber } from "../commandments/get-commandment-by-number.ts";
-import { createListCommandmentOffenses } from "../commandments/list-commandment-offenses.ts";
-import { createListCommandmentQuestions } from "../commandments/list-commandment-questions.ts";
-import { createListCommandments } from "../commandments/list-commandments.ts";
-import { createOffensesRepository } from "../commandments/offenses-repository.ts";
+import { createChurchPreceptQuestionsRepository } from "../church-precepts/repositories/church-precept-questions-repository.ts";
+import { createChurchPreceptsRepository } from "../church-precepts/repositories/church-precepts-repository.ts";
+import churchPreceptsRoutes from "../church-precepts/routes/church-precepts-routes.ts";
+import { createChurchPreceptQuestionsService } from "../church-precepts/services/church-precept-questions-service.ts";
+import { createChurchPreceptsService } from "../church-precepts/services/church-precepts-service.ts";
+import { createCommandmentQuestionsRepository } from "../commandments/repositories/commandment-questions-repository.ts";
+import { createCommandmentsRepository } from "../commandments/repositories/commandments-repository.ts";
+import { createOffensesRepository } from "../commandments/repositories/offenses-repository.ts";
+import commandmentsRoutes from "../commandments/routes/commandments-routes.ts";
+import { createCommandmentQuestionsService } from "../commandments/services/commandment-questions-service.ts";
+import { createCommandmentsService } from "../commandments/services/commandments-service.ts";
+import { createOffensesService } from "../commandments/services/offenses-service.ts";
 
 export interface ApiOptions {
 	apiKey: string;
@@ -30,28 +28,30 @@ const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
 		}
 	});
 
-	const commandments = createCommandmentsRepository(api.db);
+	const commandments = createCommandmentsService(
+		createCommandmentsRepository(api.db),
+	);
 	api.register(commandmentsRoutes, {
 		prefix: "/commandments",
-		listCommandments: createListCommandments(commandments),
-		getCommandmentByNumber: createGetCommandmentByNumber(commandments),
-		listCommandmentQuestions: createListCommandmentQuestions(
+		commandments,
+		commandmentQuestions: createCommandmentQuestionsService(
 			createCommandmentQuestionsRepository(api.db),
-			commandments,
+			commandments.getByNumber,
 		),
-		listCommandmentOffenses: createListCommandmentOffenses(
+		offenses: createOffensesService(
 			createOffensesRepository(api.db),
-			commandments,
+			commandments.getByNumber,
 		),
 	});
-	const churchPrecepts = createChurchPreceptsRepository(api.db);
+	const churchPrecepts = createChurchPreceptsService(
+		createChurchPreceptsRepository(api.db),
+	);
 	api.register(churchPreceptsRoutes, {
 		prefix: "/church-precepts",
-		listChurchPrecepts: createListChurchPrecepts(churchPrecepts),
-		getChurchPreceptByNumber: createGetChurchPreceptByNumber(churchPrecepts),
-		listChurchPreceptQuestions: createListChurchPreceptQuestions(
+		churchPrecepts,
+		churchPreceptQuestions: createChurchPreceptQuestionsService(
 			createChurchPreceptQuestionsRepository(api.db),
-			churchPrecepts,
+			churchPrecepts.getByNumber,
 		),
 	});
 };

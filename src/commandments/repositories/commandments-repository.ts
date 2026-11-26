@@ -1,12 +1,9 @@
-import type { Conn } from "../db/types.ts";
-import type { GetCommandmentByNumberRepository } from "./get-commandment-by-number.ts";
-import type { ListCommandmentsRepository } from "./list-commandments.ts";
+import type { Conn } from "../../db/types.ts";
+import type { CommandmentsRepository } from "../services/commandments-service.ts";
 
 const commandmentColumns = ["id", "number", "text"] as const;
 
-export function createCommandmentsRepository(
-	db: Conn,
-): ListCommandmentsRepository & GetCommandmentByNumberRepository {
+export function createCommandmentsRepository(db: Conn): CommandmentsRepository {
 	return {
 		async findAll() {
 			return db

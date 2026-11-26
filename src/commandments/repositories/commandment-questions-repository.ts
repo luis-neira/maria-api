@@ -1,9 +1,9 @@
-import type { Conn } from "../db/types.ts";
-import type { ListCommandmentQuestionsRepository } from "./list-commandment-questions.ts";
+import type { Conn } from "../../db/types.ts";
+import type { CommandmentQuestionsRepository } from "../services/commandment-questions-service.ts";
 
 export function createCommandmentQuestionsRepository(
 	db: Conn,
-): ListCommandmentQuestionsRepository {
+): CommandmentQuestionsRepository {
 	return {
 		async findByCommandmentNumber(number) {
 			return db

@@ -1,28 +1,39 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
-import commandmentsRoutes from "../src/commandments/commandments-routes.ts";
-import { commandmentNotFound } from "../src/commandments/get-commandment-by-number.ts";
+import commandmentsRoutes from "../src/commandments/routes/commandments-routes.ts";
 import { errorHandler } from "../src/error-handler.ts";
+import { AppError } from "../src/errors.ts";
 
 function createApp() {
 	const app = Fastify();
 	app.setErrorHandler(errorHandler); // as buildApp does
 	app.register(commandmentsRoutes, {
 		prefix: "/commandments",
-		async listCommandments() {
-			return [{ id: 1, number: 1, text: "First" }];
+		commandments: {
+			async list() {
+				return [{ id: 1, number: 1, text: "First" }];
+			},
+			async getByNumber(number) {
+				throw new AppError("NOT_FOUND", `Commandment ${number} not found.`);
+			},
 		},
-		async getCommandmentByNumber(number) {
-			throw commandmentNotFound(number);
+		commandmentQuestions: {
+			async listByCommandmentNumber(number) {
+				return [
+					{
+						id: 1,
+						commandmentId: number,
+						questionPosition: 1,
+						text: "Have I?",
+					},
+				];
+			},
 		},
-		async listCommandmentQuestions(number) {
-			return [
-				{ id: 1, commandmentId: number, questionPosition: 1, text: "Have I?" },
-			];
-		},
-		async listCommandmentOffenses() {
-			return { categories: [], uncategorized: [] };
+		offenses: {
+			async listByCommandmentNumber() {
+				return { categories: [], uncategorized: [] };
+			},
 		},
 	});
 	return app;

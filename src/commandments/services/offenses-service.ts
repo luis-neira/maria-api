@@ -1,7 +1,4 @@
-import {
-	commandmentNotFound,
-	type GetCommandmentByNumberRepository,
-} from "./get-commandment-by-number.ts";
+import type { CommandmentsService } from "./commandments-service.ts";
 
 interface OffenseSummary {
 	id: number;
@@ -17,7 +14,7 @@ interface OffenseWithCategory extends OffenseSummary {
 	category: OffenseCategorySummary | null;
 }
 
-export interface ListCommandmentOffensesRepository {
+export interface OffensesRepository {
 	/** Returns Offenses ordered by category text, then Offense text, with uncategorized Offenses last. */
 	findByCommandmentNumber(number: number): Promise<OffenseWithCategory[]>;
 }
@@ -30,10 +27,6 @@ export interface CommandmentOffenses {
 	categories: OffenseCategoryWithOffenses[];
 	uncategorized: OffenseSummary[];
 }
-
-export type ListCommandmentOffenses = (
-	number: number,
-) => Promise<CommandmentOffenses>;
 
 // Keeps the order the rows come in, so the repository decides the sort
 function groupByCategory(rows: OffenseWithCategory[]): CommandmentOffenses {
@@ -54,14 +47,16 @@ function groupByCategory(rows: OffenseWithCategory[]): CommandmentOffenses {
 	return { categories: [...categories.values()], uncategorized };
 }
 
-export function createListCommandmentOffenses(
-	offenses: ListCommandmentOffensesRepository,
-	commandments: GetCommandmentByNumberRepository,
-): ListCommandmentOffenses {
-	return async (number) => {
-		if (!(await commandments.findByCommandmentNumber(number))) {
-			throw commandmentNotFound(number);
-		}
-		return groupByCategory(await offenses.findByCommandmentNumber(number));
+export function createOffensesService(
+	repository: OffensesRepository,
+	getCommandmentByNumber: CommandmentsService["getByNumber"],
+) {
+	return {
+		async listByCommandmentNumber(number: number) {
+			await getCommandmentByNumber(number);
+			return groupByCategory(await repository.findByCommandmentNumber(number));
+		},
 	};
 }
+
+export type OffensesService = ReturnType<typeof createOffensesService>;

@@ -1,20 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { Commandment } from "../src/commandments/commandment.ts";
+import type { Commandment } from "../src/commandments/domain/commandment.ts";
 import {
-	createGetCommandmentByNumber,
-	type GetCommandmentByNumberRepository,
-} from "../src/commandments/get-commandment-by-number.ts";
-import {
-	createListCommandments,
-	type ListCommandmentsRepository,
-} from "../src/commandments/list-commandments.ts";
+	type CommandmentsRepository,
+	createCommandmentsService,
+} from "../src/commandments/services/commandments-service.ts";
 import { AppError } from "../src/errors.ts";
 
 // A fake repository: an array behind the same interface. No database, no Fastify.
-function fakeRepo(
-	rows: Commandment[],
-): ListCommandmentsRepository & GetCommandmentByNumberRepository {
+function fakeRepo(rows: Commandment[]): CommandmentsRepository {
 	return {
 		async findAll() {
 			return [...rows].sort((a, b) => a.number - b.number);
@@ -30,26 +24,25 @@ const rows: Commandment[] = [
 	{ id: 2, number: 1, text: "First" },
 ];
 
-test("listCommandments returns every Commandment in number order", async () => {
-	const listCommandments = createListCommandments(fakeRepo(rows));
-	assert.deepEqual(await listCommandments(), [
+const commandments = createCommandmentsService(fakeRepo(rows));
+
+test("lists every Commandment in number order", async () => {
+	assert.deepEqual(await commandments.list(), [
 		{ id: 2, number: 1, text: "First" },
 		{ id: 1, number: 2, text: "Second" },
 	]);
 });
 
-test("getCommandmentByNumber finds a Commandment by number", async () => {
-	const getCommandmentByNumber = createGetCommandmentByNumber(fakeRepo(rows));
-	assert.deepEqual(await getCommandmentByNumber(1), {
+test("finds a Commandment by number", async () => {
+	assert.deepEqual(await commandments.getByNumber(1), {
 		id: 2,
 		number: 1,
 		text: "First",
 	});
 });
 
-test("getCommandmentByNumber throws a NOT_FOUND AppError for a missing number", async () => {
-	const getCommandmentByNumber = createGetCommandmentByNumber(fakeRepo(rows));
-	await assert.rejects(getCommandmentByNumber(7), (err) => {
+test("throws a NOT_FOUND AppError for a missing Commandment", async () => {
+	await assert.rejects(commandments.getByNumber(7), (err) => {
 		assert.ok(err instanceof AppError);
 		assert.equal(err.code, "NOT_FOUND");
 		assert.equal(err.message, "Commandment 7 not found.");

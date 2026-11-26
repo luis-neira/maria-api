@@ -1,8 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createGetChurchPreceptByNumber } from "../src/church-precepts/get-church-precept-by-number.ts";
-import { createListChurchPreceptQuestions } from "../src/church-precepts/list-church-precept-questions.ts";
-import { createListChurchPrecepts } from "../src/church-precepts/list-church-precepts.ts";
+import { createChurchPreceptQuestionsService } from "../src/church-precepts/services/church-precept-questions-service.ts";
+import { createChurchPreceptsService } from "../src/church-precepts/services/church-precepts-service.ts";
 import { AppError } from "../src/errors.ts";
 
 const churchPrecepts = [
@@ -21,18 +20,17 @@ const repository = {
 	},
 };
 
-test("lists Church precepts in number order", async () => {
-	const listChurchPrecepts = createListChurchPrecepts(repository);
+const churchPreceptsService = createChurchPreceptsService(repository);
 
-	assert.deepEqual(await listChurchPrecepts(), [
+test("lists Church precepts in number order", async () => {
+	assert.deepEqual(await churchPreceptsService.list(), [
 		{ id: 8, number: 1, text: "First" },
 		{ id: 4, number: 2, text: "Second" },
 	]);
 });
 
 test("finds a Church precept by number", async () => {
-	const getChurchPreceptByNumber = createGetChurchPreceptByNumber(repository);
-	assert.deepEqual(await getChurchPreceptByNumber(2), {
+	assert.deepEqual(await churchPreceptsService.getByNumber(2), {
 		id: 4,
 		number: 2,
 		text: "Second",
@@ -40,8 +38,7 @@ test("finds a Church precept by number", async () => {
 });
 
 test("a missing Church precept produces a NOT_FOUND AppError", async () => {
-	const getChurchPreceptByNumber = createGetChurchPreceptByNumber(repository);
-	await assert.rejects(getChurchPreceptByNumber(3), {
+	await assert.rejects(churchPreceptsService.getByNumber(3), {
 		name: AppError.name,
 		code: "NOT_FOUND",
 		message: "Church Precept 3 not found.",
@@ -59,26 +56,35 @@ const questions = {
 	},
 };
 
-const listChurchPreceptQuestions = createListChurchPreceptQuestions(
+const churchPreceptQuestionsService = createChurchPreceptQuestionsService(
 	questions,
-	repository,
+	churchPreceptsService.getByNumber,
 );
 
 test("lists a Church precept's Examination questions in position order", async () => {
-	assert.deepEqual(await listChurchPreceptQuestions(1), [
-		{ id: 2, churchPreceptId: 8, questionPosition: 1, text: "First?" },
-		{ id: 1, churchPreceptId: 8, questionPosition: 2, text: "Second?" },
-	]);
+	assert.deepEqual(
+		await churchPreceptQuestionsService.listByChurchPreceptNumber(1),
+		[
+			{ id: 2, churchPreceptId: 8, questionPosition: 1, text: "First?" },
+			{ id: 1, churchPreceptId: 8, questionPosition: 2, text: "Second?" },
+		],
+	);
 });
 
 test("lists no Examination questions for an existing Church precept with none", async () => {
-	assert.deepEqual(await listChurchPreceptQuestions(2), []);
+	assert.deepEqual(
+		await churchPreceptQuestionsService.listByChurchPreceptNumber(2),
+		[],
+	);
 });
 
 test("listing Examination questions for a missing Church precept throws NOT_FOUND", async () => {
-	await assert.rejects(listChurchPreceptQuestions(3), {
-		name: AppError.name,
-		code: "NOT_FOUND",
-		message: "Church Precept 3 not found.",
-	});
+	await assert.rejects(
+		churchPreceptQuestionsService.listByChurchPreceptNumber(3),
+		{
+			name: AppError.name,
+			code: "NOT_FOUND",
+			message: "Church Precept 3 not found.",
+		},
+	);
 });

@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
-import { churchPreceptNumberParams } from "./church-precept-params.ts";
-import type { ListChurchPreceptQuestions } from "./list-church-precept-questions.ts";
+import type { ChurchPreceptQuestionsService } from "../services/church-precept-questions-service.ts";
+import { churchPreceptNumberParams } from "./schemas/church-precept-params.ts";
 
 export interface ChurchPreceptQuestionsOptions {
-	listChurchPreceptQuestions: ListChurchPreceptQuestions;
+	churchPreceptQuestions: ChurchPreceptQuestionsService;
 }
 
 const questionSchema = {
@@ -27,7 +27,10 @@ const churchPreceptQuestionsRoutes: FastifyPluginAsync<
 				response: { 200: { type: "array", items: questionSchema } },
 			},
 		},
-		async (request) => opts.listChurchPreceptQuestions(request.params.number),
+		async (request) =>
+			opts.churchPreceptQuestions.listByChurchPreceptNumber(
+				request.params.number,
+			),
 	);
 };
 

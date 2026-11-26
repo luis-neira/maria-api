@@ -1,10 +1,9 @@
-import type { Conn } from "../db/types.ts";
-import type { GetChurchPreceptByNumberRepository } from "./get-church-precept-by-number.ts";
-import type { ListChurchPreceptsRepository } from "./list-church-precepts.ts";
+import type { Conn } from "../../db/types.ts";
+import type { ChurchPreceptsRepository } from "../services/church-precepts-service.ts";
 
 export function createChurchPreceptsRepository(
 	db: Conn,
-): ListChurchPreceptsRepository & GetChurchPreceptByNumberRepository {
+): ChurchPreceptsRepository {
 	return {
 		async findAll() {
 			return db

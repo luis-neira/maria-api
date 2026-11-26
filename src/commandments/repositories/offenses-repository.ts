@@ -1,9 +1,7 @@
-import type { Conn } from "../db/types.ts";
-import type { ListCommandmentOffensesRepository } from "./list-commandment-offenses.ts";
+import type { Conn } from "../../db/types.ts";
+import type { OffensesRepository } from "../services/offenses-service.ts";
 
-export function createOffensesRepository(
-	db: Conn,
-): ListCommandmentOffensesRepository {
+export function createOffensesRepository(db: Conn): OffensesRepository {
 	return {
 		async findByCommandmentNumber(number) {
 			const rows = await db
