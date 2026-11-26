@@ -11,16 +11,16 @@ import type { ExaminationQuestionsService } from "../src/services/examination-qu
 
 // Fake services: the routes are tested without a database
 const fakeService: CommandmentsService = {
-	async listCommandments() {
+	async getAllCommandments() {
 		return [{ id: 1, number: 1, text: "First" }];
 	},
-	async getCommandment(number) {
+	async getByCommandmentNumber(number) {
 		throw commandmentNotFound(number);
 	},
 };
 
 const fakeQuestions: ExaminationQuestionsService = {
-	async listQuestions(number) {
+	async getAllQuestions(number) {
 		return [
 			{ id: 1, commandmentId: number, questionPosition: 1, text: "Have I?" },
 		];

@@ -11,7 +11,7 @@ function fakeRepo(rows: Commandment[]): CommandmentsRepository {
 		async findAll() {
 			return [...rows].sort((a, b) => a.number - b.number);
 		},
-		async findByNumber(number) {
+		async findByCommandmentNumber(number) {
 			return rows.find((r) => r.number === number);
 		},
 	};
@@ -22,26 +22,26 @@ const rows: Commandment[] = [
 	{ id: 2, number: 1, text: "First" },
 ];
 
-test("listCommandments returns every commandment", async () => {
+test("getAllCommandments returns every Commandment", async () => {
 	const service = createCommandmentsService(fakeRepo(rows));
 	assert.deepEqual(
-		(await service.listCommandments()).map((c) => c.number),
+		(await service.getAllCommandments()).map((c) => c.number),
 		[1, 2],
 	);
 });
 
-test("getCommandment finds by number", async () => {
+test("getByCommandmentNumber finds a Commandment by number", async () => {
 	const service = createCommandmentsService(fakeRepo(rows));
-	assert.deepEqual(await service.getCommandment(1), {
+	assert.deepEqual(await service.getByCommandmentNumber(1), {
 		id: 2,
 		number: 1,
 		text: "First",
 	});
 });
 
-test("getCommandment throws a NOT_FOUND AppError for a missing number", async () => {
+test("getByCommandmentNumber throws a NOT_FOUND AppError for a missing number", async () => {
 	const service = createCommandmentsService(fakeRepo(rows));
-	await assert.rejects(service.getCommandment(7), (err) => {
+	await assert.rejects(service.getByCommandmentNumber(7), (err) => {
 		assert.ok(err instanceof AppError);
 		assert.equal(err.code, "NOT_FOUND");
 		assert.equal(err.message, "Commandment 7 not found.");
