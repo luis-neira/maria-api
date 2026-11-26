@@ -23,3 +23,7 @@ _Avoid_: Prompt, checklist item
 **Commandment**:
 One of the Ten Commandments in the Catholic numbering, identified by number 1–10 (the Ninth and Tenth are the two commandments against coveting). Other traditions' numberings are out of scope. It owns its Offenses, Offense categories and Examination questions.
 _Avoid_: Rule, precept
+
+**Church precept**:
+One of five obligations the Church places on Catholics, such as "To confess one's sins at least once a year", identified by number 1–5. It is not a Commandment, even where the two cover similar ground. It owns its Examination questions.
+_Avoid_: Precept (on its own), commandment of the Church, rule
