@@ -4,9 +4,9 @@ import {
 	type CommandmentsService,
 	createCommandmentsService,
 } from "../services/commandments-service.ts";
-import examinationQuestionsRoutes, {
-	type ExaminationQuestionsOptions,
-} from "./examination-questions.ts";
+import commandmentQuestionsRoutes, {
+	type CommandmentQuestionsOptions,
+} from "./commandment-questions.ts";
 import offensesRoutes, { type OffensesOptions } from "./offenses.ts";
 
 declare module "fastify" {
@@ -17,7 +17,7 @@ declare module "fastify" {
 
 export interface CommandmentsOptions {
 	service?: CommandmentsService; // tests can pass their own
-	questions?: ExaminationQuestionsOptions;
+	questions?: CommandmentQuestionsOptions;
 	offenses?: OffensesOptions;
 }
 
@@ -67,7 +67,7 @@ const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (
 			app.commandmentsService.getByCommandmentNumber(request.params.number),
 	);
 
-	app.register(examinationQuestionsRoutes, {
+	app.register(commandmentQuestionsRoutes, {
 		prefix: "/:number/questions",
 		...opts.questions,
 	});

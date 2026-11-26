@@ -16,7 +16,7 @@ INSERT INTO commandments (number, text) VALUES
   (10, 'Thou shalt not covet thy neighbor''s goods')
 ON CONFLICT (number) DO UPDATE SET text = excluded.text;
 
-INSERT INTO examination_questions (commandment_id, question_position, text)
+INSERT INTO commandment_questions (commandment_id, question_position, text)
 SELECT c.id, q.question_position, q.text
 FROM (VALUES
   (1,  1, 'Have I treated people, events, or things as more important than God?'),

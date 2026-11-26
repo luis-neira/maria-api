@@ -3,11 +3,11 @@ import { test } from "node:test";
 import Fastify from "fastify";
 import { errorHandler } from "../src/error-handler.ts";
 import commandmentsRoutes from "../src/routes/commandments.ts";
+import type { CommandmentQuestionsService } from "../src/services/commandment-questions-service.ts";
 import {
 	type CommandmentsService,
 	commandmentNotFound,
 } from "../src/services/commandments-service.ts";
-import type { ExaminationQuestionsService } from "../src/services/examination-questions-service.ts";
 
 // Fake services: the routes are tested without a database
 const fakeService: CommandmentsService = {
@@ -19,7 +19,7 @@ const fakeService: CommandmentsService = {
 	},
 };
 
-const fakeQuestions: ExaminationQuestionsService = {
+const fakeQuestions: CommandmentQuestionsService = {
 	async getAllQuestions(number) {
 		return [
 			{ id: 1, commandmentId: number, questionPosition: 1, text: "Have I?" },
@@ -95,5 +95,5 @@ test("the services are private to the commandments scope", async (t) => {
 	await app.ready();
 
 	assert.equal(app.hasDecorator("commandmentsService"), false);
-	assert.equal(app.hasDecorator("examinationQuestionsService"), false);
+	assert.equal(app.hasDecorator("commandmentQuestionsService"), false);
 });

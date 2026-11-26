@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
-import commandmentsRoutes from "./commandments.ts";
 import churchPreceptsRoutes from "./church-precepts.ts";
+import commandmentsRoutes from "./commandments.ts";
 
 export interface ApiOptions {
 	apiKey: string;

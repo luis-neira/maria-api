@@ -1,18 +1,18 @@
-import type { ExaminationQuestion } from "../db/types.ts";
+import type { CommandmentQuestion } from "../db/types.ts";
+import type { CommandmentQuestionsRepository } from "../repositories/commandment-questions-repository.ts";
 import type { CommandmentsRepository } from "../repositories/commandments-repository.ts";
-import type { ExaminationQuestionsRepository } from "../repositories/examination-questions-repository.ts";
 import { commandmentNotFound } from "./commandments-service.ts";
 
 // Reads only, so no use case and no transaction.
 // It checks the commandment through the commandments repository, not the commandments service.
-export function createExaminationQuestionsService(
-	questions: ExaminationQuestionsRepository,
+export function createCommandmentQuestionsService(
+	questions: CommandmentQuestionsRepository,
 	commandments: CommandmentsRepository,
 ) {
 	return {
 		async getAllQuestions(
 			commandmentNumber: number,
-		): Promise<ExaminationQuestion[]> {
+		): Promise<CommandmentQuestion[]> {
 			if (!(await commandments.findByCommandmentNumber(commandmentNumber))) {
 				throw commandmentNotFound(commandmentNumber);
 			}
@@ -21,6 +21,6 @@ export function createExaminationQuestionsService(
 	};
 }
 
-export type ExaminationQuestionsService = ReturnType<
-	typeof createExaminationQuestionsService
+export type CommandmentQuestionsService = ReturnType<
+	typeof createCommandmentQuestionsService
 >;

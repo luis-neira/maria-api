@@ -23,16 +23,16 @@ export interface ChurchPrecepts {
 	text: string;
 }
 
-export interface Commandments {
-	id: Generated<number>;
-	number: number;
-	text: string;
-}
-
-export interface ExaminationQuestions {
+export interface CommandmentQuestions {
 	commandmentId: number;
 	id: Generated<number>;
 	questionPosition: number;
+	text: string;
+}
+
+export interface Commandments {
+	id: Generated<number>;
+	number: number;
 	text: string;
 }
 
@@ -52,8 +52,8 @@ export interface Offenses {
 export interface DB {
 	churchPreceptQuestions: ChurchPreceptQuestions;
 	churchPrecepts: ChurchPrecepts;
+	commandmentQuestions: CommandmentQuestions;
 	commandments: Commandments;
-	examinationQuestions: ExaminationQuestions;
 	offenseCategories: OffenseCategories;
 	offenses: Offenses;
 }

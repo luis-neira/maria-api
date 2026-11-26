@@ -5,7 +5,7 @@ import type { DB } from "./db.d.ts";
 export type { DB };
 
 export type Commandment = Selectable<DB["commandments"]>; // what a SELECT returns
-export type ExaminationQuestion = Selectable<DB["examinationQuestions"]>;
+export type CommandmentQuestion = Selectable<DB["commandmentQuestions"]>;
 export type Offense = Selectable<DB["offenses"]>;
 export type ChurchPrecept = Selectable<DB["churchPrecepts"]>;
 export type ChurchPreceptQuestion = Selectable<DB["churchPreceptQuestions"]>;

@@ -1,19 +1,19 @@
 import type { FastifyPluginAsync } from "fastify";
+import { createCommandmentQuestionsRepository } from "../repositories/commandment-questions-repository.ts";
 import { createCommandmentsRepository } from "../repositories/commandments-repository.ts";
-import { createExaminationQuestionsRepository } from "../repositories/examination-questions-repository.ts";
 import {
-	createExaminationQuestionsService,
-	type ExaminationQuestionsService,
-} from "../services/examination-questions-service.ts";
+	type CommandmentQuestionsService,
+	createCommandmentQuestionsService,
+} from "../services/commandment-questions-service.ts";
 
 declare module "fastify" {
 	interface FastifyInstance {
-		examinationQuestionsService: ExaminationQuestionsService;
+		commandmentQuestionsService: CommandmentQuestionsService;
 	}
 }
 
-export interface ExaminationQuestionsOptions {
-	service?: ExaminationQuestionsService; // tests can pass their own
+export interface CommandmentQuestionsOptions {
+	service?: CommandmentQuestionsService; // tests can pass their own
 }
 
 // number comes from the prefix '/:number/questions'
@@ -33,14 +33,14 @@ const questionSchema = {
 	},
 } as const;
 
-const examinationQuestionsRoutes: FastifyPluginAsync<
-	ExaminationQuestionsOptions
+const commandmentQuestionsRoutes: FastifyPluginAsync<
+	CommandmentQuestionsOptions
 > = async (app, opts) => {
 	app.decorate(
-		"examinationQuestionsService",
+		"commandmentQuestionsService",
 		opts.service ??
-			createExaminationQuestionsService(
-				createExaminationQuestionsRepository(app.db),
+			createCommandmentQuestionsService(
+				createCommandmentQuestionsRepository(app.db),
 				createCommandmentsRepository(app.db),
 			),
 	);
@@ -54,8 +54,8 @@ const examinationQuestionsRoutes: FastifyPluginAsync<
 			},
 		},
 		async (request) =>
-			app.examinationQuestionsService.getAllQuestions(request.params.number),
+			app.commandmentQuestionsService.getAllQuestions(request.params.number),
 	);
 };
 
-export default examinationQuestionsRoutes;
+export default commandmentQuestionsRoutes;
