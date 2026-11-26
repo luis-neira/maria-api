@@ -200,7 +200,7 @@ SELECT c.id, q.question_position, q.text
 FROM (VALUES
   (1,  1, 'Have I neglected, without good reason, to hear Mass on Sundays and Holy Days of Obligation and to keep those days holy by avoiding all servile work?'),
   (2,  1, 'Have I omitted to confess my mortal sins at least once this year?'),
-  (3,  1, 'Have I ommitted to make my Easter-duty? (That is, to receive Holy Communion worthily during Easteride - that is, on either Easter Sunday, Ascension Thursday, or some day between those two feasts)'),
+  (3,  1, 'Have I omitted to make my Easter-duty? (That is, to receive Holy Communion worthily during Eastertide - that is, on either Easter Sunday, Ascension Thursday, or some day between those two feasts)'),
   (4,  1, 'Have I failed to fast or abstain, without sufficient reason, on those days commanded to be so observed by the Church?'),
   (5,  1, 'Have I refused to contribute to the support of my Pastor, according to my means?'),
   (5,  2, 'Have I gone to Mass Sunday after Sunday, without giving anything to the collections?')
