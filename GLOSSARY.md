@@ -1,6 +1,6 @@
 # Examination of Conscience
 
-A reference for a Catholic examination of conscience organised by the Ten Commandments, sourced from the USCCB's "A Brief Examination of Conscience Based on the Ten Commandments".
+A reference for a Catholic examination of conscience organised by the Ten Commandments and the Church precepts. The Commandment content is sourced from the USCCB's "A Brief Examination of Conscience Based on the Ten Commandments".
 
 ## Language
 
@@ -17,7 +17,7 @@ A named grouping of a Commandment's Offenses, such as "Those against Faith". A c
 _Avoid_: Sin type, offense group
 
 **Examination question**:
-An ordered prompt a penitent asks themselves about a Commandment. It is independent of Offenses: a question is not linked to the Offenses it covers.
+An ordered prompt a penitent asks themselves about a Commandment or a Church precept. Each question is about exactly one of these, and questions are ordered within it. It is independent of Offenses: a question is not linked to the Offenses it covers.
 _Avoid_: Prompt, checklist item
 
 **Commandment**:
