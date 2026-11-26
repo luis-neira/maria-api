@@ -4,15 +4,6 @@ import Fastify from "fastify";
 import commandmentsRoutes from "../src/commandments/commandments-routes.ts";
 import { commandmentNotFound } from "../src/commandments/get-commandment-by-number.ts";
 import { errorHandler } from "../src/error-handler.ts";
-import type { CommandmentQuestionsService } from "../src/services/commandment-questions-service.ts";
-
-const fakeQuestions: CommandmentQuestionsService = {
-	async getAllQuestions(number) {
-		return [
-			{ id: 1, commandmentId: number, questionPosition: 1, text: "Have I?" },
-		];
-	},
-};
 
 function createApp() {
 	const app = Fastify();
@@ -25,7 +16,11 @@ function createApp() {
 		async getCommandmentByNumber(number) {
 			throw commandmentNotFound(number);
 		},
-		questions: { service: fakeQuestions },
+		async listCommandmentQuestions(number) {
+			return [
+				{ id: 1, commandmentId: number, questionPosition: 1, text: "Have I?" },
+			];
+		},
 		offenses: {
 			service: {
 				async getAllOffenses() {
@@ -74,7 +69,7 @@ test("the schema rejects a bad number", async (t) => {
 	}
 });
 
-test("questions routes pass the number to the questions service", async (t) => {
+test("the Examination question route passes the Commandment number to the use case", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());
 
@@ -86,12 +81,4 @@ test("questions routes pass the number to the questions service", async (t) => {
 	assert.deepEqual(res.json(), [
 		{ id: 1, commandmentId: 3, questionPosition: 1, text: "Have I?" },
 	]);
-});
-
-test("the Examination question service is private to the Commandments scope", async (t) => {
-	const app = createApp();
-	t.after(() => app.close());
-	await app.ready();
-
-	assert.equal(app.hasDecorator("commandmentQuestionsService"), false);
 });

@@ -1,18 +1,15 @@
-import type { CommandmentQuestion, Conn } from "../db/types.ts";
-
-export interface CommandmentQuestionsRepository {
-	findByCommandmentNumber(number: number): Promise<CommandmentQuestion[]>;
-}
+import type { Conn } from "../db/types.ts";
+import type { ListCommandmentQuestionsRepository } from "./list-commandment-questions.ts";
 
 export function createCommandmentQuestionsRepository(
 	db: Conn,
-): CommandmentQuestionsRepository {
+): ListCommandmentQuestionsRepository {
 	return {
 		async findByCommandmentNumber(number) {
 			return db
 				.selectFrom("commandmentQuestions as q")
 				.innerJoin("commandments as c", "c.id", "q.commandmentId")
-				.selectAll("q")
+				.select(["q.id", "q.commandmentId", "q.questionPosition", "q.text"])
 				.where("c.number", "=", number)
 				.orderBy("q.questionPosition")
 				.execute();

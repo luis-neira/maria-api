@@ -1,15 +1,14 @@
 import type { FastifyPluginAsync } from "fastify";
-import commandmentQuestionsRoutes, {
-	type CommandmentQuestionsOptions,
-} from "../routes/commandment-questions.ts";
 import offensesRoutes, { type OffensesOptions } from "../routes/offenses.ts";
+import commandmentQuestionsRoutes from "./commandment-questions-routes.ts";
 import type { GetCommandmentByNumber } from "./get-commandment-by-number.ts";
+import type { ListCommandmentQuestions } from "./list-commandment-questions.ts";
 import type { ListCommandments } from "./list-commandments.ts";
 
 export interface CommandmentsOptions {
 	listCommandments: ListCommandments;
 	getCommandmentByNumber: GetCommandmentByNumber;
-	questions?: CommandmentQuestionsOptions;
+	listCommandmentQuestions: ListCommandmentQuestions;
 	offenses?: OffensesOptions;
 }
 
@@ -52,7 +51,7 @@ const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (
 
 	app.register(commandmentQuestionsRoutes, {
 		prefix: "/:number/questions",
-		...opts.questions,
+		listCommandmentQuestions: opts.listCommandmentQuestions,
 	});
 
 	app.register(offensesRoutes, {
