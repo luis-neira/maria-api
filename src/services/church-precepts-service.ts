@@ -9,11 +9,11 @@ export function churchPreceptNotFound(number: number) {
 // Plain TypeScript: no Fastify, no Kysely. Business rules live here.
 export function createChurchPreceptsService(repo: ChurchPreceptsRepository) {
   return {
-    async listChurchPrecepts(): Promise<ChurchPrecept[]> {
+    async getAllPrecepts(): Promise<ChurchPrecept[]> {
       return repo.findAll();
     },
-    async getChurchPrecept(number: number): Promise<ChurchPrecept> {
-      const churchPrecept = await repo.findByNumber(number);
+    async getByPreceptNumber(number: number): Promise<ChurchPrecept> {
+      const churchPrecept = await repo.findByPreceptNumber(number);
       if (!churchPrecept) throw churchPreceptNotFound(number);
       return churchPrecept;
     },

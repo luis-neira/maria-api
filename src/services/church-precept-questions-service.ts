@@ -8,8 +8,8 @@ export function createChurchPreceptQuestionsService(
 	churchPrecepts: ChurchPreceptsRepository,
 ) {
 	return {
-		async listQuestions(number: number): Promise<ChurchPreceptQuestion[]> {
-			const churchPrecept = await churchPrecepts.findByNumber(number);
+		async getAllQuestions(number: number): Promise<ChurchPreceptQuestion[]> {
+			const churchPrecept = await churchPrecepts.findByPreceptNumber(number);
 			if (!churchPrecept) throw churchPreceptNotFound(number);
 			return questions.findByChurchPreceptId(churchPrecept.id);
 		},

@@ -10,10 +10,10 @@ export function createExaminationQuestionsService(
 	commandments: CommandmentsRepository,
 ) {
 	return {
-		async listQuestions(
+		async getAllQuestions(
 			commandmentNumber: number,
 		): Promise<ExaminationQuestion[]> {
-			if (!(await commandments.findByNumber(commandmentNumber))) {
+			if (!(await commandments.findByCommandmentNumber(commandmentNumber))) {
 				throw commandmentNotFound(commandmentNumber);
 			}
 			return questions.findByCommandmentNumber(commandmentNumber);

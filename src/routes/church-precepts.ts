@@ -46,7 +46,7 @@ const churchPreceptsRoutes: FastifyPluginAsync<ChurchPreceptsOptions> = async (
 				response: { 200: { type: "array", items: churchPreceptSchema } },
 			},
 		},
-		async () => app.churchPreceptsService.listChurchPrecepts(),
+		async () => app.churchPreceptsService.getAllPrecepts(),
 	);
 
 	app.get<{ Params: { number: number } }>(
@@ -58,7 +58,7 @@ const churchPreceptsRoutes: FastifyPluginAsync<ChurchPreceptsOptions> = async (
 			},
 		},
 		async (request) =>
-			app.churchPreceptsService.getChurchPrecept(request.params.number),
+			app.churchPreceptsService.getByPreceptNumber(request.params.number),
 	);
 
 	app.register(churchPreceptQuestionsRoutes, {

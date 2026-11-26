@@ -48,7 +48,7 @@ const churchPreceptQuestionsRoutes: FastifyPluginAsync<
 			},
 		},
 		async (request) =>
-			app.churchPreceptQuestionsService.listQuestions(request.params.number),
+			app.churchPreceptQuestionsService.getAllQuestions(request.params.number),
 	);
 };
 

@@ -9,11 +9,11 @@ export function commandmentNotFound(number: number) {
 // Plain TypeScript: no Fastify, no Kysely. Business rules live here.
 export function createCommandmentsService(repo: CommandmentsRepository) {
 	return {
-		async listCommandments(): Promise<Commandment[]> {
+		async getAllCommandments(): Promise<Commandment[]> {
 			return repo.findAll();
 		},
-		async getCommandment(number: number): Promise<Commandment> {
-			const commandment = await repo.findByNumber(number);
+		async getByCommandmentNumber(number: number): Promise<Commandment> {
+			const commandment = await repo.findByCommandmentNumber(number);
 			if (!commandment) throw commandmentNotFound(number);
 			return commandment;
 		},

@@ -70,7 +70,7 @@ const offensesRoutes: FastifyPluginAsync<OffensesOptions> = async (
 	app.get<{ Params: { number: number } }>(
 		"/",
 		{ schema: { params, response: { 200: commandmentOffensesSchema } } },
-		async (request) => app.offensesService.listOffenses(request.params.number),
+		async (request) => app.offensesService.getAllOffenses(request.params.number),
 	);
 };
 

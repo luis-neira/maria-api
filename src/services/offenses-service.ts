@@ -43,10 +43,10 @@ export function createOffensesService(
 	commandments: CommandmentsRepository,
 ) {
 	return {
-		async listOffenses(
+		async getAllOffenses(
 			commandmentNumber: number,
 		): Promise<CommandmentOffenses> {
-			if (!(await commandments.findByNumber(commandmentNumber))) {
+			if (!(await commandments.findByCommandmentNumber(commandmentNumber))) {
 				throw commandmentNotFound(commandmentNumber);
 			}
 			return groupByCategory(

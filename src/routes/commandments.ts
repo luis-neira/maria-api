@@ -55,7 +55,7 @@ const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (
 				response: { 200: { type: "array", items: commandmentSchema } },
 			},
 		},
-		async () => app.commandmentsService.listCommandments(),
+		async () => app.commandmentsService.getAllCommandments(),
 	);
 
 	app.get<{ Params: { number: number } }>(
@@ -64,7 +64,7 @@ const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (
 			schema: { params: numberParams, response: { 200: commandmentSchema } },
 		},
 		async (request) =>
-			app.commandmentsService.getCommandment(request.params.number),
+			app.commandmentsService.getByCommandmentNumber(request.params.number),
 	);
 
 	app.register(examinationQuestionsRoutes, {

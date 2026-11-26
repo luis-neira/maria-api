@@ -54,7 +54,7 @@ const examinationQuestionsRoutes: FastifyPluginAsync<
 			},
 		},
 		async (request) =>
-			app.examinationQuestionsService.listQuestions(request.params.number),
+			app.examinationQuestionsService.getAllQuestions(request.params.number),
 	);
 };
 

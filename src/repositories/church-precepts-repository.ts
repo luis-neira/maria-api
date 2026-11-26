@@ -2,7 +2,7 @@ import type { ChurchPrecept, Conn } from "../db/types.ts";
 
 export interface ChurchPreceptsRepository {
   findAll(): Promise<ChurchPrecept[]>;
-  findByNumber(number: number): Promise<ChurchPrecept | undefined>;
+  findByPreceptNumber(number: number): Promise<ChurchPrecept | undefined>;
 }
 
 export function createChurchPreceptsRepository(db: Conn): ChurchPreceptsRepository {
@@ -14,7 +14,7 @@ export function createChurchPreceptsRepository(db: Conn): ChurchPreceptsReposito
         .orderBy("number")
         .execute();
     },
-    async findByNumber(number) {
+    async findByPreceptNumber(number: number) {
       return db
         .selectFrom("churchPrecepts")
         .selectAll()
