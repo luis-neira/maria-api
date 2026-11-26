@@ -39,7 +39,8 @@ before(async () => {
 // Every test starts with empty tables and ids from 1. Tests insert their own rows; they don't load db/seed.sql.
 beforeEach(async () => {
 	await pglite.exec(
-		"TRUNCATE offenses, offense_categories, examination_questions, commandments RESTART IDENTITY",
+		`TRUNCATE offenses, offense_categories, examination_questions, commandments,
+		church_precept_questions, church_precepts RESTART IDENTITY`,
 	);
 });
 
@@ -51,6 +52,13 @@ after(async () => {
 async function insertCommandment(number: number, text: string) {
 	await pglite.query(
 		"INSERT INTO commandments (number, text) VALUES ($1, $2)",
+		[number, text],
+	);
+}
+
+async function insertChurchPrecept(number: number, text: string) {
+	await pglite.query(
+		"INSERT INTO church_precepts (number, text) VALUES ($1, $2)",
 		[number, text],
 	);
 }
@@ -109,6 +117,8 @@ test("/api needs an API key, at every depth", async (t) => {
 		"/api/commandments/1",
 		"/api/commandments/1/questions",
 		"/api/commandments/1/offenses",
+		"/api/church-precepts",
+		"/api/church-precepts/1",
 	]) {
 		const res = await app.inject({ method: "GET", url });
 		assert.equal(res.statusCode, 401, url);
@@ -214,6 +224,84 @@ test("a missing commandment is a 404, an out-of-range number is a 400", async (t
 		status: 400,
 		detail: "params/number must be <= 10",
 	});
+});
+
+test("GET /api/church-precepts lists Church precepts with IDs in number order", async (t) => {
+	await insertChurchPrecept(2, "Second");
+	await insertChurchPrecept(1, "First");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/church-precepts",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), [
+		{ id: 2, number: 1, text: "First" },
+		{ id: 1, number: 2, text: "Second" },
+	]);
+});
+
+test("GET /api/church-precepts/:number returns the ID of the Church precept found by number", async (t) => {
+	await insertChurchPrecept(5, "Fifth");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/church-precepts/5",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), { id: 1, number: 5, text: "Fifth" });
+});
+
+test("a missing Church precept returns a 404 problem response", async (t) => {
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/church-precepts/3",
+		headers,
+	});
+	assert.equal(res.statusCode, 404);
+	assert.equal(
+		res.headers["content-type"],
+		"application/problem+json; charset=utf-8",
+	);
+	assert.deepEqual(res.json(), {
+		title: "Not Found",
+		status: 404,
+		detail: "Church Precept 3 not found.",
+	});
+});
+
+test("an invalid Church precept number returns a 400 problem response", async (t) => {
+	const app = createApp();
+	t.after(() => app.close());
+
+	for (const [number, detail] of [
+		["0", "params/number must be >= 1"],
+		["6", "params/number must be <= 5"],
+		["2.5", "params/number must be integer"],
+		["abc", "params/number must be integer"],
+	]) {
+		const res = await app.inject({
+			method: "GET",
+			url: `/api/church-precepts/${number}`,
+			headers,
+		});
+		assert.equal(res.statusCode, 400, number);
+		assert.equal(
+			res.headers["content-type"],
+			"application/problem+json; charset=utf-8",
+			number,
+		);
+		assert.deepEqual(res.json(), { title: "Bad Request", status: 400, detail });
+	}
 });
 
 test("questions come back camelCased and in position order", async (t) => {
