@@ -1,12 +1,9 @@
-import type { ChurchPreceptQuestion, Conn } from "../db/types.ts";
-
-export interface ChurchPreceptQuestionsRepository {
-	findByChurchPreceptId(id: number): Promise<ChurchPreceptQuestion[]>;
-}
+import type { Conn } from "../db/types.ts";
+import type { ListChurchPreceptQuestionsRepository } from "./list-church-precept-questions.ts";
 
 export function createChurchPreceptQuestionsRepository(
 	db: Conn,
-): ChurchPreceptQuestionsRepository {
+): ListChurchPreceptQuestionsRepository {
 	return {
 		async findByChurchPreceptId(id) {
 			return db

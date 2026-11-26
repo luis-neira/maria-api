@@ -1,4 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
+import { createChurchPreceptQuestionsRepository } from "../church-precepts/church-precept-questions-repository.ts";
+import { createChurchPreceptsRepository } from "../church-precepts/church-precepts-repository.ts";
+import churchPreceptsRoutes from "../church-precepts/church-precepts-routes.ts";
+import { createGetChurchPreceptByNumber } from "../church-precepts/get-church-precept-by-number.ts";
+import { createListChurchPreceptQuestions } from "../church-precepts/list-church-precept-questions.ts";
+import { createListChurchPrecepts } from "../church-precepts/list-church-precepts.ts";
 import { createCommandmentQuestionsRepository } from "../commandments/commandment-questions-repository.ts";
 import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
 import commandmentsRoutes from "../commandments/commandments-routes.ts";
@@ -7,7 +13,6 @@ import { createListCommandmentOffenses } from "../commandments/list-commandment-
 import { createListCommandmentQuestions } from "../commandments/list-commandment-questions.ts";
 import { createListCommandments } from "../commandments/list-commandments.ts";
 import { createOffensesRepository } from "../commandments/offenses-repository.ts";
-import churchPreceptsRoutes from "./church-precepts.ts";
 
 export interface ApiOptions {
 	apiKey: string;
@@ -39,7 +44,16 @@ const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
 			commandments,
 		),
 	});
-	api.register(churchPreceptsRoutes, { prefix: "/church-precepts" });
+	const churchPrecepts = createChurchPreceptsRepository(api.db);
+	api.register(churchPreceptsRoutes, {
+		prefix: "/church-precepts",
+		listChurchPrecepts: createListChurchPrecepts(churchPrecepts),
+		getChurchPreceptByNumber: createGetChurchPreceptByNumber(churchPrecepts),
+		listChurchPreceptQuestions: createListChurchPreceptQuestions(
+			createChurchPreceptQuestionsRepository(api.db),
+			churchPrecepts,
+		),
+	});
 };
 
 export default apiRoutes;
