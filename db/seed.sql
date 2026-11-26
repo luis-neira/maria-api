@@ -186,3 +186,11 @@ FROM (VALUES
 ) AS o (text)
 JOIN commandments c ON c.number IN (7, 10)
 ON CONFLICT (commandment_id, text) DO NOTHING;
+
+INSERT INTO church_precepts (number, text) VALUES
+  (1,  'To hear Mass on Sundays, and Holy Days of Obligation'),
+  (2,  'To confess one''s sins at least once a year'),
+  (3,  'To receive the Holy Eucharist during the Easter time'),
+  (4,  'To fast and abstain on the days appointed'),
+  (5,  'To provide for the needs of the Church')
+ON CONFLICT (number) DO UPDATE SET text = excluded.text;
