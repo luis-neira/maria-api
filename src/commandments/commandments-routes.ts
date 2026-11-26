@@ -1,22 +1,14 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createCommandmentsRepository } from "../repositories/commandments-repository.ts";
-import {
-	type CommandmentsService,
-	createCommandmentsService,
-} from "../services/commandments-service.ts";
 import commandmentQuestionsRoutes, {
 	type CommandmentQuestionsOptions,
-} from "./commandment-questions.ts";
-import offensesRoutes, { type OffensesOptions } from "./offenses.ts";
-
-declare module "fastify" {
-	interface FastifyInstance {
-		commandmentsService: CommandmentsService;
-	}
-}
+} from "../routes/commandment-questions.ts";
+import offensesRoutes, { type OffensesOptions } from "../routes/offenses.ts";
+import type { GetCommandmentByNumber } from "./get-commandment-by-number.ts";
+import type { ListCommandments } from "./list-commandments.ts";
 
 export interface CommandmentsOptions {
-	service?: CommandmentsService; // tests can pass their own
+	listCommandments: ListCommandments;
+	getCommandmentByNumber: GetCommandmentByNumber;
 	questions?: CommandmentQuestionsOptions;
 	offenses?: OffensesOptions;
 }
@@ -40,14 +32,6 @@ const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (
 	app,
 	opts,
 ) => {
-	// Wiring: the only line that touches app.db. Built once at boot,
-	// visible to this plugin and its children only.
-	app.decorate(
-		"commandmentsService",
-		opts.service ??
-			createCommandmentsService(createCommandmentsRepository(app.db)),
-	);
-
 	app.get(
 		"/",
 		{
@@ -55,7 +39,7 @@ const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (
 				response: { 200: { type: "array", items: commandmentSchema } },
 			},
 		},
-		async () => app.commandmentsService.getAllCommandments(),
+		async () => opts.listCommandments(),
 	);
 
 	app.get<{ Params: { number: number } }>(
@@ -63,8 +47,7 @@ const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (
 		{
 			schema: { params: numberParams, response: { 200: commandmentSchema } },
 		},
-		async (request) =>
-			app.commandmentsService.getByCommandmentNumber(request.params.number),
+		async (request) => opts.getCommandmentByNumber(request.params.number),
 	);
 
 	app.register(commandmentQuestionsRoutes, {

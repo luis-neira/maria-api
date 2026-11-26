@@ -1,11 +1,13 @@
-import type { CommandmentsRepository } from "../repositories/commandments-repository.ts";
+import {
+	commandmentNotFound,
+	type GetCommandmentByNumberRepository,
+} from "../commandments/get-commandment-by-number.ts";
 import type {
 	OffenseCategorySummary,
 	OffenseSummary,
 	OffensesRepository,
 	OffenseWithCategory,
 } from "../repositories/offenses-repository.ts";
-import { commandmentNotFound } from "./commandments-service.ts";
 
 export interface OffenseCategoryWithOffenses extends OffenseCategorySummary {
 	offenses: OffenseSummary[];
@@ -36,11 +38,9 @@ function groupByCategory(rows: OffenseWithCategory[]): CommandmentOffenses {
 	return { categories: [...categories.values()], uncategorized };
 }
 
-// Reads only, so no use case and no transaction.
-// It checks the commandment through the commandments repository, not the commandments service.
 export function createOffensesService(
 	offenses: OffensesRepository,
-	commandments: CommandmentsRepository,
+	commandments: GetCommandmentByNumberRepository,
 ) {
 	return {
 		async getAllOffenses(

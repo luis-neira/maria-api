@@ -1,14 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import type { GetCommandmentByNumberRepository } from "../src/commandments/get-commandment-by-number.ts";
 import { AppError } from "../src/errors.ts";
 import type { CommandmentQuestionsRepository } from "../src/repositories/commandment-questions-repository.ts";
-import type { CommandmentsRepository } from "../src/repositories/commandments-repository.ts";
 import { createCommandmentQuestionsService } from "../src/services/commandment-questions-service.ts";
 
-const commandments: CommandmentsRepository = {
-	async findAll() {
-		return [{ id: 1, number: 1, text: "First" }];
-	},
+const commandments: GetCommandmentByNumberRepository = {
 	async findByCommandmentNumber(number) {
 		return number === 1 ? { id: 1, number: 1, text: "First" } : undefined;
 	},

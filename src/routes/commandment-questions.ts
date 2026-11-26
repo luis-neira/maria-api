@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
+import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
 import { createCommandmentQuestionsRepository } from "../repositories/commandment-questions-repository.ts";
-import { createCommandmentsRepository } from "../repositories/commandments-repository.ts";
 import {
 	type CommandmentQuestionsService,
 	createCommandmentQuestionsService,

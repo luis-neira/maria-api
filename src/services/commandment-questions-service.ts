@@ -1,13 +1,13 @@
+import {
+	commandmentNotFound,
+	type GetCommandmentByNumberRepository,
+} from "../commandments/get-commandment-by-number.ts";
 import type { CommandmentQuestion } from "../db/types.ts";
 import type { CommandmentQuestionsRepository } from "../repositories/commandment-questions-repository.ts";
-import type { CommandmentsRepository } from "../repositories/commandments-repository.ts";
-import { commandmentNotFound } from "./commandments-service.ts";
 
-// Reads only, so no use case and no transaction.
-// It checks the commandment through the commandments repository, not the commandments service.
 export function createCommandmentQuestionsService(
 	questions: CommandmentQuestionsRepository,
-	commandments: CommandmentsRepository,
+	commandments: GetCommandmentByNumberRepository,
 ) {
 	return {
 		async getAllQuestions(

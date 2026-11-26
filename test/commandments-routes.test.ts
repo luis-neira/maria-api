@@ -1,23 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
+import commandmentsRoutes from "../src/commandments/commandments-routes.ts";
+import { commandmentNotFound } from "../src/commandments/get-commandment-by-number.ts";
 import { errorHandler } from "../src/error-handler.ts";
-import commandmentsRoutes from "../src/routes/commandments.ts";
 import type { CommandmentQuestionsService } from "../src/services/commandment-questions-service.ts";
-import {
-	type CommandmentsService,
-	commandmentNotFound,
-} from "../src/services/commandments-service.ts";
-
-// Fake services: the routes are tested without a database
-const fakeService: CommandmentsService = {
-	async getAllCommandments() {
-		return [{ id: 1, number: 1, text: "First" }];
-	},
-	async getByCommandmentNumber(number) {
-		throw commandmentNotFound(number);
-	},
-};
 
 const fakeQuestions: CommandmentQuestionsService = {
 	async getAllQuestions(number) {
@@ -32,13 +19,25 @@ function createApp() {
 	app.setErrorHandler(errorHandler); // as buildApp does
 	app.register(commandmentsRoutes, {
 		prefix: "/commandments",
-		service: fakeService,
+		async listCommandments() {
+			return [{ id: 1, number: 1, text: "First" }];
+		},
+		async getCommandmentByNumber(number) {
+			throw commandmentNotFound(number);
+		},
 		questions: { service: fakeQuestions },
+		offenses: {
+			service: {
+				async getAllOffenses() {
+					return { categories: [], uncategorized: [] };
+				},
+			},
+		},
 	});
 	return app;
 }
 
-test("GET / lists the commandments from the service", async (t) => {
+test("GET / lists the Commandments returned by the list use case", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());
 
@@ -60,7 +59,7 @@ test("application errors become problem responses", async (t) => {
 	});
 });
 
-test("the schema rejects a bad number before the service runs", async (t) => {
+test("the schema rejects a bad number", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());
 
@@ -89,11 +88,10 @@ test("questions routes pass the number to the questions service", async (t) => {
 	]);
 });
 
-test("the services are private to the commandments scope", async (t) => {
+test("the Examination question service is private to the Commandments scope", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());
 	await app.ready();
 
-	assert.equal(app.hasDecorator("commandmentsService"), false);
 	assert.equal(app.hasDecorator("commandmentQuestionsService"), false);
 });

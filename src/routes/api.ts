@@ -1,6 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
+import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
+import commandmentsRoutes from "../commandments/commandments-routes.ts";
+import { createGetCommandmentByNumber } from "../commandments/get-commandment-by-number.ts";
+import { createListCommandments } from "../commandments/list-commandments.ts";
 import churchPreceptsRoutes from "./church-precepts.ts";
-import commandmentsRoutes from "./commandments.ts";
 
 export interface ApiOptions {
 	apiKey: string;
@@ -18,7 +21,12 @@ const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
 		}
 	});
 
-	api.register(commandmentsRoutes, { prefix: "/commandments" });
+	const commandments = createCommandmentsRepository(api.db);
+	api.register(commandmentsRoutes, {
+		prefix: "/commandments",
+		listCommandments: createListCommandments(commandments),
+		getCommandmentByNumber: createGetCommandmentByNumber(commandments),
+	});
 	api.register(churchPreceptsRoutes, { prefix: "/church-precepts" });
 };
 

@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createCommandmentsRepository } from "../repositories/commandments-repository.ts";
+import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
 import { createOffensesRepository } from "../repositories/offenses-repository.ts";
 import {
 	createOffensesService,
