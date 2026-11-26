@@ -10,6 +10,13 @@ export type Generated<T> =
 		? ColumnType<S, I | undefined, U>
 		: ColumnType<T, T | undefined, T>;
 
+export interface ChurchPreceptQuestions {
+	churchPreceptId: number;
+	id: Generated<number>;
+	questionPosition: number;
+	text: string;
+}
+
 export interface ChurchPrecepts {
 	id: Generated<number>;
 	number: number;
@@ -43,6 +50,7 @@ export interface Offenses {
 }
 
 export interface DB {
+	churchPreceptQuestions: ChurchPreceptQuestions;
 	churchPrecepts: ChurchPrecepts;
 	commandments: Commandments;
 	examinationQuestions: ExaminationQuestions;

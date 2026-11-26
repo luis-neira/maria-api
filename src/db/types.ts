@@ -8,6 +8,7 @@ export type Commandment = Selectable<DB["commandments"]>; // what a SELECT retur
 export type ExaminationQuestion = Selectable<DB["examinationQuestions"]>;
 export type Offense = Selectable<DB["offenses"]>;
 export type ChurchPrecept = Selectable<DB["churchPrecepts"]>;
+export type ChurchPreceptQuestion = Selectable<DB["churchPreceptQuestions"]>;
 
 // A Transaction<DB> is a Kysely<DB>, so repositories run inside or outside a transaction
 export type Conn = Kysely<DB>;

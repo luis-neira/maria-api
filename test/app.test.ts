@@ -63,6 +63,18 @@ async function insertChurchPrecept(number: number, text: string) {
 	);
 }
 
+async function insertChurchPreceptQuestion(
+	churchPreceptId: number,
+	position: number,
+	text: string,
+) {
+	await pglite.query(
+		`INSERT INTO church_precept_questions (church_precept_id, question_position, text)
+		VALUES ($1, $2, $3)`,
+		[churchPreceptId, position, text],
+	);
+}
+
 async function insertQuestion(
 	commandmentNumber: number,
 	position: number,
@@ -119,6 +131,7 @@ test("/api needs an API key, at every depth", async (t) => {
 		"/api/commandments/1/offenses",
 		"/api/church-precepts",
 		"/api/church-precepts/1",
+		"/api/church-precepts/1/questions",
 	]) {
 		const res = await app.inject({ method: "GET", url });
 		assert.equal(res.statusCode, 401, url);
@@ -289,19 +302,86 @@ test("an invalid Church precept number returns a 400 problem response", async (t
 		["2.5", "params/number must be integer"],
 		["abc", "params/number must be integer"],
 	]) {
-		const res = await app.inject({
-			method: "GET",
-			url: `/api/church-precepts/${number}`,
-			headers,
-		});
-		assert.equal(res.statusCode, 400, number);
-		assert.equal(
-			res.headers["content-type"],
-			"application/problem+json; charset=utf-8",
-			number,
-		);
-		assert.deepEqual(res.json(), { title: "Bad Request", status: 400, detail });
+		for (const url of [
+			`/api/church-precepts/${number}`,
+			`/api/church-precepts/${number}/questions`,
+		]) {
+			const res = await app.inject({ method: "GET", url, headers });
+			assert.equal(res.statusCode, 400, url);
+			assert.equal(
+				res.headers["content-type"],
+				"application/problem+json; charset=utf-8",
+				url,
+			);
+			assert.deepEqual(res.json(), {
+				title: "Bad Request",
+				status: 400,
+				detail,
+			});
+		}
 	}
+});
+
+test("questions for the requested Church precept are ordered by position", async (t) => {
+	await insertChurchPrecept(2, "Second");
+	await insertChurchPrecept(1, "First");
+	await insertChurchPreceptQuestion(1, 2, "Second question?");
+	await insertChurchPreceptQuestion(2, 1, "Another Church precept's question?");
+	await insertChurchPreceptQuestion(1, 1, "First question?");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/church-precepts/2/questions",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), [
+		{ id: 3, churchPreceptId: 1, questionPosition: 1, text: "First question?" },
+		{
+			id: 1,
+			churchPreceptId: 1,
+			questionPosition: 2,
+			text: "Second question?",
+		},
+	]);
+});
+
+test("a Church precept with no questions returns an empty array", async (t) => {
+	await insertChurchPrecept(3, "Third");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/church-precepts/3/questions",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), []);
+});
+
+test("a missing Church precept yields the same 404 problem for its detail and questions", async (t) => {
+	const app = createApp();
+	t.after(() => app.close());
+
+	const precept = await app.inject({
+		method: "GET",
+		url: "/api/church-precepts/3",
+		headers,
+	});
+	const questions = await app.inject({
+		method: "GET",
+		url: "/api/church-precepts/3/questions",
+		headers,
+	});
+	assert.equal(questions.statusCode, 404);
+	assert.equal(
+		questions.headers["content-type"],
+		"application/problem+json; charset=utf-8",
+	);
+	assert.deepEqual(questions.json(), precept.json());
 });
 
 test("questions come back camelCased and in position order", async (t) => {

@@ -4,6 +4,10 @@ import {
 	type ChurchPreceptsService,
 	createChurchPreceptsService,
 } from "../services/church-precepts-service.ts";
+import { churchPreceptNumberParams } from "./church-precept-params.ts";
+import churchPreceptQuestionsRoutes, {
+	type ChurchPreceptQuestionsOptions,
+} from "./church-precept-questions.ts";
 
 declare module "fastify" {
 	interface FastifyInstance {
@@ -13,6 +17,7 @@ declare module "fastify" {
 
 export interface ChurchPreceptsOptions {
 	service?: ChurchPreceptsService; // tests can pass their own
+	questions?: ChurchPreceptQuestionsOptions;
 }
 
 const churchPreceptSchema = {
@@ -48,17 +53,18 @@ const churchPreceptsRoutes: FastifyPluginAsync<ChurchPreceptsOptions> = async (
 		"/:number",
 		{
 			schema: {
-				params: {
-					type: "object",
-					required: ["number"],
-					properties: { number: { type: "integer", minimum: 1, maximum: 5 } },
-				},
+				params: churchPreceptNumberParams,
 				response: { 200: churchPreceptSchema },
 			},
 		},
 		async (request) =>
 			app.churchPreceptsService.getChurchPrecept(request.params.number),
 	);
+
+	app.register(churchPreceptQuestionsRoutes, {
+		prefix: "/:number/questions",
+		...opts.questions,
+	});
 };
 
 export default churchPreceptsRoutes;
