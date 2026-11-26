@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
 import commandmentsRoutes from "./commandments.ts";
+import churchPreceptsRoutes from "./church-precepts.ts";
 
 export interface ApiOptions {
 	apiKey: string;
@@ -18,6 +19,7 @@ const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
 	});
 
 	api.register(commandmentsRoutes, { prefix: "/commandments" });
+	api.register(churchPreceptsRoutes, { prefix: "/church-precepts" });
 };
 
 export default apiRoutes;
