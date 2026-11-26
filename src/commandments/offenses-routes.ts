@@ -1,19 +1,8 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
-import { createOffensesRepository } from "../repositories/offenses-repository.ts";
-import {
-	createOffensesService,
-	type OffensesService,
-} from "../services/offenses-service.ts";
+import type { ListCommandmentOffenses } from "./list-commandment-offenses.ts";
 
-declare module "fastify" {
-	interface FastifyInstance {
-		offensesService: OffensesService;
-	}
-}
-
-export interface OffensesOptions {
-	service?: OffensesService; // tests can pass their own
+interface OffensesOptions {
+	listCommandmentOffenses: ListCommandmentOffenses;
 }
 
 // number comes from the prefix '/:number/offenses'
@@ -58,20 +47,10 @@ const offensesRoutes: FastifyPluginAsync<OffensesOptions> = async (
 	app,
 	opts,
 ) => {
-	app.decorate(
-		"offensesService",
-		opts.service ??
-			createOffensesService(
-				createOffensesRepository(app.db),
-				createCommandmentsRepository(app.db),
-			),
-	);
-
 	app.get<{ Params: { number: number } }>(
 		"/",
 		{ schema: { params, response: { 200: commandmentOffensesSchema } } },
-		async (request) =>
-			app.offensesService.getAllOffenses(request.params.number),
+		async (request) => opts.listCommandmentOffenses(request.params.number),
 	);
 };
 

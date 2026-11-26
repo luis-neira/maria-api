@@ -3,8 +3,10 @@ import { createCommandmentQuestionsRepository } from "../commandments/commandmen
 import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
 import commandmentsRoutes from "../commandments/commandments-routes.ts";
 import { createGetCommandmentByNumber } from "../commandments/get-commandment-by-number.ts";
+import { createListCommandmentOffenses } from "../commandments/list-commandment-offenses.ts";
 import { createListCommandmentQuestions } from "../commandments/list-commandment-questions.ts";
 import { createListCommandments } from "../commandments/list-commandments.ts";
+import { createOffensesRepository } from "../commandments/offenses-repository.ts";
 import churchPreceptsRoutes from "./church-precepts.ts";
 
 export interface ApiOptions {
@@ -30,6 +32,10 @@ const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
 		getCommandmentByNumber: createGetCommandmentByNumber(commandments),
 		listCommandmentQuestions: createListCommandmentQuestions(
 			createCommandmentQuestionsRepository(api.db),
+			commandments,
+		),
+		listCommandmentOffenses: createListCommandmentOffenses(
+			createOffensesRepository(api.db),
 			commandments,
 		),
 	});

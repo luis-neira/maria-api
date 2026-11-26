@@ -21,12 +21,8 @@ function createApp() {
 				{ id: 1, commandmentId: number, questionPosition: 1, text: "Have I?" },
 			];
 		},
-		offenses: {
-			service: {
-				async getAllOffenses() {
-					return { categories: [], uncategorized: [] };
-				},
-			},
+		async listCommandmentOffenses() {
+			return { categories: [], uncategorized: [] };
 		},
 	});
 	return app;

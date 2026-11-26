@@ -556,7 +556,7 @@ test("a commandment with no offenses has both lists empty", async (t) => {
 	assert.deepEqual(res.json(), { categories: [], uncategorized: [] });
 });
 
-test("offenses with the same wording under two commandments stay with their own", async (t) => {
+test("the Seventh and Tenth Commandments each return their own Offenses with shared wording", async (t) => {
 	await insertCommandment(7, "You shall not steal.");
 	await insertCommandment(10, "You shall not covet your neighbor's goods.");
 	await insertOffense(7, "Envy");
@@ -574,6 +574,20 @@ test("offenses with the same wording under two commandments stay with their own"
 	assert.deepEqual(res.json(), {
 		categories: [],
 		uncategorized: [{ id: 1, text: "Envy" }],
+	});
+
+	const tenth = await app.inject({
+		method: "GET",
+		url: "/api/commandments/10/offenses",
+		headers,
+	});
+	assert.equal(tenth.statusCode, 200);
+	assert.deepEqual(tenth.json(), {
+		categories: [],
+		uncategorized: [
+			{ id: 2, text: "Envy" },
+			{ id: 3, text: "Greed" },
+		],
 	});
 });
 
