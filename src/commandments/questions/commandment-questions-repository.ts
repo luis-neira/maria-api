@@ -1,4 +1,4 @@
-import type { Conn } from "../../db/types.ts";
+import type { Conn } from "#db/types.ts";
 import type { CommandmentQuestionsRepository } from "./commandment-questions-service.ts";
 
 export function createCommandmentQuestionsRepository(

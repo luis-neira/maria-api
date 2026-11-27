@@ -1,4 +1,4 @@
-import type { Conn } from "../../db/types.ts";
+import type { Conn } from "#db/types.ts";
 import type { OffensesRepository } from "./offenses-service.ts";
 
 export function createOffensesRepository(db: Conn): OffensesRepository {

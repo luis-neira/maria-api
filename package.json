@@ -5,6 +5,9 @@
 	"engines": {
 		"node": ">=22.18"
 	},
+	"imports": {
+		"#db/*": "./src/db/*"
+	},
 	"scripts": {
 		"dev": "node --env-file=.env --env-file-if-exists=.env.local --watch src/server.ts | pino-pretty",
 		"start": "node src/server.ts",

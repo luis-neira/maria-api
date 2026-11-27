@@ -1,4 +1,4 @@
-import type { Conn } from "../db/types.ts";
+import type { Conn } from "#db/types.ts";
 import type { CommandmentsRepository } from "./commandments-service.ts";
 
 const commandmentColumns = ["id", "number", "text"] as const;

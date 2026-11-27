@@ -1,7 +1,7 @@
 import fp from "fastify-plugin";
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
 import { Pool } from "pg";
-import type { DB } from "../db/types.ts";
+import type { DB } from "#db/types.ts";
 
 declare module "fastify" {
 	interface FastifyInstance {
