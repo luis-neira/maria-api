@@ -15,9 +15,7 @@ function sendProblem(reply: FastifyReply, status: number, detail: string) {
 		.code(status)
 		.type("application/problem+json; charset=utf-8")
 		.send({
-			title:
-				STATUS_CODES[status] ??
-				(status < 500 ? "Client Error" : "Server Error"),
+			title: STATUS_CODES[status] ?? "Client Error",
 			status,
 			detail,
 		});
