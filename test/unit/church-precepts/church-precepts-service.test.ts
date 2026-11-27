@@ -43,4 +43,3 @@ test("a missing Church precept produces a NOT_FOUND AppError", async () => {
 		message: "Church Precept 3 not found.",
 	});
 });
-

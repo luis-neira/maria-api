@@ -1,14 +1,6 @@
 {
-  "all": true,
-  "include": [
-    "src/**/*.ts"
-  ],
-  "exclude": [
-    "**/*.d.ts",
-    "src/db/types.ts",
-    "src/server.ts"
-  ],
-  "extension": [
-    ".ts"
-  ]
+	"all": true,
+	"include": ["src/**/*.ts"],
+	"exclude": ["**/*.d.ts", "src/db/types.ts", "src/server.ts"],
+	"extension": [".ts"]
 }
