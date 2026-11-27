@@ -1,5 +1,5 @@
 import Fastify, { type FastifyServerOptions } from "fastify";
-import { errorHandler, notFoundHandler } from "./app-handler.ts";
+import { errorHandler, notFoundHandler } from "./app-handlers.ts";
 import dbPlugin from "./plugins/db.ts";
 import apiRoutes from "./plugins/api.ts";
 
