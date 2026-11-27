@@ -6,11 +6,11 @@ import { createChurchPreceptQuestionsService } from "../church-precepts/services
 import { createChurchPreceptsService } from "../church-precepts/services/church-precepts-service.ts";
 import { createCommandmentQuestionsRepository } from "../commandments/repositories/commandment-questions-repository.ts";
 import { createCommandmentsRepository } from "../commandments/repositories/commandments-repository.ts";
-import { createOffensesRepository } from "../commandments/repositories/offenses-repository.ts";
+import { createOffensesRepository } from "../commandments/offenses/repositories/offenses-repository.ts";
 import commandmentsRoutes from "../commandments/routes/commandments-routes.ts";
 import { createCommandmentQuestionsService } from "../commandments/services/commandment-questions-service.ts";
 import { createCommandmentsService } from "../commandments/services/commandments-service.ts";
-import { createOffensesService } from "../commandments/services/offenses-service.ts";
+import { createOffensesService } from "../commandments/offenses/services/offenses-service.ts";
 
 export interface ApiOptions {
 	apiKey: string;
