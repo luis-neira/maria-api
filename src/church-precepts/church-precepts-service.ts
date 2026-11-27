@@ -1,11 +1,5 @@
 import { AppError } from "../errors.ts";
-import type { ChurchPrecept } from "./domain/church-precept.ts";
-
-export interface ChurchPreceptsRepository {
-	/** Returns all Church precepts in number order. */
-	findAll(): Promise<ChurchPrecept[]>;
-	findByChurchPreceptNumber(number: number): Promise<ChurchPrecept | undefined>;
-}
+import type { ChurchPreceptsRepository } from "./church-precepts-repository.ts";
 
 export function createChurchPreceptsService(
 	repository: ChurchPreceptsRepository,

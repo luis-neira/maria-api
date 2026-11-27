@@ -1,5 +1,16 @@
 import type { Conn } from "#db/types.ts";
-import type { ChurchPreceptQuestionsRepository } from "./church-precept-questions-service.ts";
+
+export interface ChurchPreceptQuestion {
+	id: number;
+	churchPreceptId: number;
+	questionPosition: number;
+	text: string;
+}
+
+export interface ChurchPreceptQuestionsRepository {
+	/** Returns the Church precept's Examination questions in position order. */
+	findByChurchPreceptId(id: number): Promise<ChurchPreceptQuestion[]>;
+}
 
 export function createChurchPreceptQuestionsRepository(
 	db: Conn,

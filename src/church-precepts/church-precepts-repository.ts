@@ -1,5 +1,16 @@
 import type { Conn } from "#db/types.ts";
-import type { ChurchPreceptsRepository } from "./church-precepts-service.ts";
+
+export interface ChurchPrecept {
+	id: number;
+	number: number;
+	text: string;
+}
+
+export interface ChurchPreceptsRepository {
+	/** Returns all Church precepts in number order. */
+	findAll(): Promise<ChurchPrecept[]>;
+	findByChurchPreceptNumber(number: number): Promise<ChurchPrecept | undefined>;
+}
 
 export function createChurchPreceptsRepository(
 	db: Conn,
