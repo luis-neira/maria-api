@@ -10,7 +10,8 @@
 		"node": ">=22.23.0"
 	},
 	"imports": {
-		"#db/*": "./src/db/*"
+		"#db/*": "./src/db/*",
+		"#src/*": "./src/*"
 	},
 	"scripts": {
 		"dev": "node --env-file=.env --env-file-if-exists=.env.local --watch src/server.ts | pino-pretty",

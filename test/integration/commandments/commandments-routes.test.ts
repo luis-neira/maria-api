@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
-import { errorHandler } from "../../../src/app-handlers.ts";
-import commandmentsRoutes from "../../../src/commandments/commandments-routes.ts";
-import { AppError } from "../../../src/errors.ts";
+import { errorHandler } from "#src/app-handlers.ts";
+import commandmentsRoutes from "#src/commandments/commandments-routes.ts";
+import { AppError } from "#src/errors.ts";
 
 function createApp() {
 	const app = Fastify();

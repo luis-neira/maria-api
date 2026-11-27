@@ -3,9 +3,9 @@ import { test } from "node:test";
 import type {
 	Commandment,
 	CommandmentsRepository,
-} from "../../../src/commandments/commandments-repository.ts";
-import { createCommandmentsService } from "../../../src/commandments/commandments-service.ts";
-import { AppError } from "../../../src/errors.ts";
+} from "#src/commandments/commandments-repository.ts";
+import { createCommandmentsService } from "#src/commandments/commandments-service.ts";
+import { AppError } from "#src/errors.ts";
 
 // A fake repository: an array behind the same interface. No database, no Fastify.
 function fakeRepo(rows: Commandment[]): CommandmentsRepository {

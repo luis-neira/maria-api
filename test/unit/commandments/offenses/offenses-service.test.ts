@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createCommandmentsService } from "../../../../src/commandments/commandments-service.ts";
-import type { OffensesRepository } from "../../../../src/commandments/offenses/offenses-repository.ts";
-import { createOffensesService } from "../../../../src/commandments/offenses/offenses-service.ts";
-import { AppError } from "../../../../src/errors.ts";
+import { createCommandmentsService } from "#src/commandments/commandments-service.ts";
+import type { OffensesRepository } from "#src/commandments/offenses/offenses-repository.ts";
+import { createOffensesService } from "#src/commandments/offenses/offenses-service.ts";
+import { AppError } from "#src/errors.ts";
 
 const rows = [
 	{ id: 4, number: 1, text: "First" },

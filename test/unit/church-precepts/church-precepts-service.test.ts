@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createChurchPreceptsService } from "../../../src/church-precepts/church-precepts-service.ts";
-import { AppError } from "../../../src/errors.ts";
+import { createChurchPreceptsService } from "#src/church-precepts/church-precepts-service.ts";
+import { AppError } from "#src/errors.ts";
 
 const churchPrecepts = [
 	{ id: 8, number: 1, text: "First" },
