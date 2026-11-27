@@ -16,21 +16,33 @@ export interface DbOptions {
 const db = fp<DbOptions>(
 	async (app, opts) => {
 		const pool = new Pool({ connectionString: opts.connectionString });
-		await pool.query("select 1"); // fail at boot, not on the first request
+		try {
+			await pool.query("select 1"); // fail at boot, not on the first request
 
-		// CamelCasePlugin: question_position in SQL is questionPosition in TypeScript
-		app.decorate(
-			"db",
-			new Kysely<DB>({
-				dialect: new PostgresDialect({ pool }),
-				plugins: [new CamelCasePlugin()],
-			}),
-		);
+			// CamelCasePlugin: question_position in SQL is questionPosition in TypeScript
+			app.decorate(
+				"db",
+				new Kysely<DB>({
+					dialect: new PostgresDialect({ pool }),
+					plugins: [new CamelCasePlugin()],
+				}),
+			);
 
-		// pool.end(), not db.destroy(): destroy() does nothing if no Kysely query has run yet
-		app.addHook("onClose", async () => {
-			await pool.end();
-		});
+			// End the pool directly because boot can open connections before Kysely runs a query.
+			app.addHook("onClose", async () => {
+				await pool.end();
+			});
+		} catch (err) {
+			try {
+				await pool.end();
+			} catch (cleanupErr) {
+				app.log.error(
+					{ err: cleanupErr },
+					"failed to close database pool after boot error",
+				);
+			}
+			throw err;
+		}
 	},
 	{ name: "db" },
 );

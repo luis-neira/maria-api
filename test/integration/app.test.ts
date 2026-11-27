@@ -3,6 +3,7 @@ import { after, before, beforeEach, test } from "node:test";
 import { applyMigrations, connect } from "@databases/pg-migrations";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
+import { Pool } from "pg";
 import { type AppOptions, buildApp } from "#src/app.ts";
 import { AppError, type ErrorCode } from "#src/errors.ts";
 
@@ -688,6 +689,23 @@ test("boot fails fast when the database is unreachable", async () => {
 	await assert.rejects(async () => {
 		await app.ready();
 	}, /ECONNREFUSED/);
+});
+
+test("a pool cleanup error is logged without replacing the database boot error", async (t) => {
+	const cleanupError = new Error("pool cleanup failed");
+	t.mock.method(Pool.prototype, "end", async () => {
+		throw cleanupError;
+	});
+	const lines: string[] = [];
+	const app = createApp({
+		databaseUrl: "postgres://postgres@127.0.0.1:1/nope",
+		logger: { stream: { write: (line: string) => lines.push(line) } },
+	});
+
+	await assert.rejects(async () => {
+		await app.ready();
+	}, /ECONNREFUSED/);
+	assert.ok(lines.some((line) => line.includes(cleanupError.message)));
 });
 
 test("a 500 hides its message from the client and logs it", async (t) => {
