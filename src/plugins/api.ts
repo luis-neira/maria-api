@@ -1,19 +1,15 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createChurchPreceptsRepository } from "../church-precepts/church-precepts-repository.ts";
-import churchPreceptsRoutes from "../church-precepts/church-precepts-routes.ts";
-import { createChurchPreceptsService } from "../church-precepts/church-precepts-service.ts";
-import { createChurchPreceptQuestionsRepository } from "../church-precepts/questions/church-precept-questions-repository.ts";
-import { createChurchPreceptQuestionsService } from "../church-precepts/questions/church-precept-questions-service.ts";
-import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
-import commandmentsRoutes from "../commandments/commandments-routes.ts";
-import { createCommandmentsService } from "../commandments/commandments-service.ts";
-import { createOffensesRepository } from "../commandments/offenses/offenses-repository.ts";
-import { createOffensesService } from "../commandments/offenses/offenses-service.ts";
-import { createCommandmentQuestionsRepository } from "../commandments/questions/commandment-questions-repository.ts";
-import { createCommandmentQuestionsService } from "../commandments/questions/commandment-questions-service.ts";
+import churchPreceptsRoutes, {
+	type ChurchPreceptsOptions,
+} from "../church-precepts/church-precepts-routes.ts";
+import commandmentsRoutes, {
+	type CommandmentsOptions,
+} from "../commandments/commandments-routes.ts";
 
 export interface ApiOptions {
 	apiKey: string;
+	commandments: CommandmentsOptions;
+	churchPrecepts: ChurchPreceptsOptions;
 }
 
 const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
@@ -28,32 +24,14 @@ const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
 		}
 	});
 
-	const commandments = createCommandmentsService(
-		createCommandmentsRepository(api.db),
-	);
 	api.register(commandmentsRoutes, {
 		prefix: "/commandments",
-		commandments,
-		commandmentQuestions: createCommandmentQuestionsService(
-			createCommandmentQuestionsRepository(api.db),
-			commandments.getByNumber,
-		),
-		offenses: createOffensesService(
-			createOffensesRepository(api.db),
-			commandments.getByNumber,
-		),
+		...opts.commandments,
 	});
 
-	const churchPrecepts = createChurchPreceptsService(
-		createChurchPreceptsRepository(api.db),
-	);
 	api.register(churchPreceptsRoutes, {
 		prefix: "/church-precepts",
-		churchPrecepts,
-		churchPreceptQuestions: createChurchPreceptQuestionsService(
-			createChurchPreceptQuestionsRepository(api.db),
-			churchPrecepts.getByNumber,
-		),
+		...opts.churchPrecepts,
 	});
 };
 
