@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
-import commandmentsRoutes from "../src/commandments/routes/commandments-routes.ts";
+import commandmentsRoutes from "../src/commandments/adapters/commandments-routes.ts";
 import { errorHandler } from "../src/error-handler.ts";
 import { AppError } from "../src/errors.ts";
 

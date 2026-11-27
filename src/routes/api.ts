@@ -4,10 +4,10 @@ import { createChurchPreceptsRepository } from "../church-precepts/repositories/
 import churchPreceptsRoutes from "../church-precepts/routes/church-precepts-routes.ts";
 import { createChurchPreceptQuestionsService } from "../church-precepts/services/church-precept-questions-service.ts";
 import { createChurchPreceptsService } from "../church-precepts/services/church-precepts-service.ts";
-import { createCommandmentQuestionsRepository } from "../commandments/questions/repositories/commandment-questions-repository.ts";
-import { createCommandmentsRepository } from "../commandments/repositories/commandments-repository.ts";
-import { createOffensesRepository } from "../commandments/offenses/repositories/offenses-repository.ts";
-import commandmentsRoutes from "../commandments/routes/commandments-routes.ts";
+import { createCommandmentQuestionsRepository } from "../commandments/questions/ports/commandment-questions-repository.ts";
+import { createCommandmentsRepository } from "../commandments/ports/commandments-repository.ts";
+import { createOffensesRepository } from "../commandments/offenses/ports/offenses-repository.ts";
+import commandmentsRoutes from "../commandments/adapters/commandments-routes.ts";
 import { createCommandmentQuestionsService } from "../commandments/questions/services/commandment-questions-service.ts";
 import { createCommandmentsService } from "../commandments/services/commandments-service.ts";
 import { createOffensesService } from "../commandments/offenses/services/offenses-service.ts";
