@@ -1,7 +1,7 @@
 import Fastify, { type FastifyServerOptions } from "fastify";
 import { errorHandler, notFoundHandler } from "./app-handlers.ts";
-import dbPlugin from "./plugins/db.ts";
 import apiRoutes from "./plugins/api.ts";
+import dbPlugin from "./plugins/db.ts";
 
 // Everything the app needs from the outside. Only server.ts reads process.env.
 export interface AppOptions extends FastifyServerOptions {
