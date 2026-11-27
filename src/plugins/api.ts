@@ -43,6 +43,7 @@ const apiRoutes: FastifyPluginAsync<ApiOptions> = async (api, opts) => {
 			commandments.getByNumber,
 		),
 	});
+
 	const churchPrecepts = createChurchPreceptsService(
 		createChurchPreceptsRepository(api.db),
 	);
