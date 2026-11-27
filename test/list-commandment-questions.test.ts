@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createCommandmentsService } from "../src/commandments/commandments-service.ts";
 import {
 	type CommandmentQuestionsRepository,
 	createCommandmentQuestionsService,
-} from "../src/commandments/services/commandment-questions-service.ts";
-import { createCommandmentsService } from "../src/commandments/services/commandments-service.ts";
+} from "../src/commandments/questions/commandment-questions-service.ts";
 import { AppError } from "../src/errors.ts";
 
 const rows = [
