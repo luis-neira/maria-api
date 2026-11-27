@@ -4,7 +4,6 @@ import type { CommandmentsService } from "./commandments-service.ts";
 import type { OffensesService } from "./offenses/offenses-service.ts";
 import commandmentQuestionsRoutes from "./questions/commandment-questions-routes.ts";
 import offensesRoutes from "./offenses/offenses-routes.ts";
-import { commandmentNumberParams } from "./route-schemas.ts";
 
 export interface CommandmentsOptions {
 	commandments: CommandmentsService;
@@ -19,6 +18,12 @@ const commandmentSchema = {
 		number: { type: "integer" },
 		text: { type: "string" },
 	},
+} as const;
+
+export const commandmentNumberParams = {
+	type: "object",
+	required: ["number"],
+	properties: { number: { type: "integer", minimum: 1, maximum: 10 } },
 } as const;
 
 const commandmentsRoutes: FastifyPluginAsync<CommandmentsOptions> = async (

@@ -1,6 +1,5 @@
 import type { FastifyPluginAsync } from "fastify";
 import type { OffensesService } from "./offenses-service.ts";
-import { commandmentNumberParams } from "./route-schemas.ts";
 
 interface OffensesOptions {
 	offenses: OffensesService;
@@ -35,6 +34,12 @@ const commandmentOffensesSchema = {
 		categories: { type: "array", items: offenseCategorySchema },
 		uncategorized: { type: "array", items: offenseSchema },
 	},
+} as const;
+
+const commandmentNumberParams = {
+	type: "object",
+	required: ["number"],
+	properties: { number: { type: "integer", minimum: 1, maximum: 10 } },
 } as const;
 
 const offensesRoutes: FastifyPluginAsync<OffensesOptions> = async (
