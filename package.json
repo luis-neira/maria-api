@@ -1,5 +1,9 @@
 {
 	"name": "maria-api",
+	"author": "Luis Neira",
+	"repository": {
+		"type": "git"
+	},
 	"type": "module",
 	"private": true,
 	"engines": {
