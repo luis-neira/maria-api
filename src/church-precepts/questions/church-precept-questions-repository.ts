@@ -1,5 +1,5 @@
 import type { Conn } from "../../db/types.ts";
-import type { ChurchPreceptQuestionsRepository } from "../services/church-precept-questions-service.ts";
+import type { ChurchPreceptQuestionsRepository } from "./church-precept-questions-service.ts";
 
 export function createChurchPreceptQuestionsRepository(
 	db: Conn,

@@ -1,5 +1,5 @@
-import { AppError } from "../../errors.ts";
-import type { ChurchPrecept } from "../domain/church-precept.ts";
+import { AppError } from "../errors.ts";
+import type { ChurchPrecept } from "./domain/church-precept.ts";
 
 export interface ChurchPreceptsRepository {
 	/** Returns all Church precepts in number order. */

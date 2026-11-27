@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync } from "fastify";
-import { createChurchPreceptQuestionsRepository } from "../church-precepts/repositories/church-precept-questions-repository.ts";
-import { createChurchPreceptsRepository } from "../church-precepts/repositories/church-precepts-repository.ts";
-import churchPreceptsRoutes from "../church-precepts/routes/church-precepts-routes.ts";
-import { createChurchPreceptQuestionsService } from "../church-precepts/services/church-precept-questions-service.ts";
-import { createChurchPreceptsService } from "../church-precepts/services/church-precepts-service.ts";
+import { createChurchPreceptQuestionsRepository } from "../church-precepts/questions/church-precept-questions-repository.ts";
+import { createChurchPreceptsRepository } from "../church-precepts/church-precepts-repository.ts";
+import churchPreceptsRoutes from "../church-precepts/church-precepts-routes.ts";
+import { createChurchPreceptQuestionsService } from "../church-precepts/questions/church-precept-questions-service.ts";
+import { createChurchPreceptsService } from "../church-precepts/church-precepts-service.ts";
 import { createCommandmentQuestionsRepository } from "../commandments/questions/commandment-questions-repository.ts";
 import { createCommandmentsRepository } from "../commandments/commandments-repository.ts";
 import { createOffensesRepository } from "../commandments/offenses/offenses-repository.ts";

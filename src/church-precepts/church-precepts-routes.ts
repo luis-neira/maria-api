@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { ChurchPreceptQuestionsService } from "../services/church-precept-questions-service.ts";
-import type { ChurchPreceptsService } from "../services/church-precepts-service.ts";
-import churchPreceptQuestionsRoutes from "./church-precept-questions-routes.ts";
+import type { ChurchPreceptQuestionsService } from "./questions/church-precept-questions-service.ts";
+import type { ChurchPreceptsService } from "./church-precepts-service.ts";
+import churchPreceptQuestionsRoutes from "./questions/church-precept-questions-routes.ts";
 
 export interface ChurchPreceptsOptions {
 	churchPrecepts: ChurchPreceptsService;

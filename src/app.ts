@@ -1,7 +1,7 @@
 import Fastify, { type FastifyServerOptions } from "fastify";
-import { errorHandler, notFoundHandler } from "./error-handler.ts";
-import db from "./plugins/db.ts";
-import apiRoutes from "./routes/api.ts";
+import { errorHandler, notFoundHandler } from "./app-handler.ts";
+import dbPlugin from "./plugins/db.ts";
+import apiRoutes from "./plugins/api.ts";
 
 // Everything the app needs from the outside. Only server.ts reads process.env.
 export interface AppOptions extends FastifyServerOptions {
@@ -16,7 +16,7 @@ export function buildApp({ databaseUrl, apiKey, ...fastifyOpts }: AppOptions) {
 	app.setErrorHandler(errorHandler);
 	app.setNotFoundHandler(notFoundHandler);
 
-	app.register(db, { connectionString: databaseUrl });
+	app.register(dbPlugin, { connectionString: databaseUrl });
 	app.register(apiRoutes, { prefix: "/api", apiKey });
 
 	// Outside /api: for the load balancer, not part of the API

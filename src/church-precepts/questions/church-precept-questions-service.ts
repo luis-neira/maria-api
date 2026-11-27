@@ -1,4 +1,4 @@
-import type { ChurchPreceptsService } from "./church-precepts-service.ts";
+import type { ChurchPreceptsService } from "../church-precepts-service.ts";
 
 export interface ChurchPreceptQuestion {
 	id: number;
