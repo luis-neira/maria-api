@@ -1,13 +1,3 @@
 {
-	"compilerOptions": {
-		"target": "esnext",
-		"module": "nodenext",
-		"noEmit": true,
-		"strict": true,
-		"verbatimModuleSyntax": true,
-		"erasableSyntaxOnly": true,
-		"allowImportingTsExtensions": true,
-		"skipLibCheck": true
-	},
-	"include": ["src", "test"]
+	"extends": ["@tsconfig/node22/tsconfig.json", "@tsconfig/node-ts/tsconfig.json"],
 }
