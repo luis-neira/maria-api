@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import Fastify from "fastify";
-import { errorHandler } from "../src/app-handlers.ts";
-import commandmentsRoutes from "../src/commandments/commandments-routes.ts";
-import { AppError } from "../src/errors.ts";
+import { errorHandler } from "../../../src/app-handlers.ts";
+import commandmentsRoutes from "../../../src/commandments/commandments-routes.ts";
+import { AppError } from "../../../src/errors.ts";
 
 function createApp() {
 	const app = Fastify();
@@ -39,7 +39,7 @@ function createApp() {
 	return app;
 }
 
-test("GET / lists the Commandments returned by the list use case", async (t) => {
+test("GET / lists the Commandments returned by the service", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());
 
@@ -76,7 +76,7 @@ test("the schema rejects a bad number", async (t) => {
 	}
 });
 
-test("the Examination question route passes the Commandment number to the use case", async (t) => {
+test("the Examination question route passes the Commandment number to the service", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());
 

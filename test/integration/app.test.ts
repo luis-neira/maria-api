@@ -3,8 +3,8 @@ import { after, before, beforeEach, test } from "node:test";
 import { applyMigrations, connect } from "@databases/pg-migrations";
 import { PGlite } from "@electric-sql/pglite";
 import { PGLiteSocketServer } from "@electric-sql/pglite-socket";
-import { type AppOptions, buildApp } from "../src/app.ts";
-import { AppError, type ErrorCode } from "../src/errors.ts";
+import { type AppOptions, buildApp } from "../../src/app.ts";
+import { AppError, type ErrorCode } from "../../src/errors.ts";
 
 // A real Postgres (compiled to WASM) in this process, reached over a socket by pg.
 // Port 0: the OS picks a free port, so this never clashes with `npm run db:serve` on 54329.
