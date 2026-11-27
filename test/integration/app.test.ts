@@ -185,6 +185,56 @@ test("GET /api/commandments lists commandments in number order", async (t) => {
 	]);
 });
 
+test("an in-flight HTTP request can query PostgreSQL before shutdown closes the pool", async (t) => {
+	await insertCommandment(1, "First");
+	const app = createApp();
+	const requestInFlight = Promise.withResolvers<void>();
+	const resumeRequest = Promise.withResolvers<void>();
+	let closing: Promise<void> | undefined;
+	t.after(() => {
+		resumeRequest.resolve();
+		return closing ?? app.close();
+	});
+
+	const shutdownEvents: string[] = [];
+	const endPool: (this: Pool) => Promise<void> = Pool.prototype.end;
+	t.mock.method(Pool.prototype, "end", async function (this: Pool) {
+		shutdownEvents.push("pool closing");
+		await endPool.call(this);
+		shutdownEvents.push("pool closed");
+	});
+	app.addHook("preHandler", async () => {
+		requestInFlight.resolve();
+		await resumeRequest.promise;
+	});
+	app.addHook("preClose", async () => {
+		resumeRequest.resolve();
+	});
+	app.addHook("onResponse", async () => {
+		shutdownEvents.push("response finished");
+	});
+
+	const address = await app.listen({ host: "127.0.0.1", port: 0 });
+	const response = fetch(`${address}/api/commandments`, {
+		headers: { ...headers, connection: "close" },
+		signal: AbortSignal.timeout(10_000),
+	});
+	await Promise.race([
+		requestInFlight.promise,
+		response.then(() => assert.fail("HTTP response arrived before preHandler")),
+	]);
+	closing = app.close();
+
+	const [result] = await Promise.all([response, closing]);
+	assert.equal(result.status, 200);
+	assert.deepEqual(await result.json(), [{ id: 1, number: 1, text: "First" }]);
+	assert.deepEqual(shutdownEvents, [
+		"response finished",
+		"pool closing",
+		"pool closed",
+	]);
+});
+
 test("GET /api/commandments/:number finds by number, not id", async (t) => {
 	await insertCommandment(5, "You shall not kill.");
 	const app = createApp();
