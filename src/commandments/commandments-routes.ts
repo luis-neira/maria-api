@@ -1,10 +1,10 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { CommandmentQuestionsService } from "../questions/services/commandment-questions-service.ts";
-import type { CommandmentsService } from "../services/commandments-service.ts";
-import type { OffensesService } from "../offenses/services/offenses-service.ts";
-import commandmentQuestionsRoutes from "../questions/adapters/commandment-questions-routes.ts";
-import offensesRoutes from "../offenses/adapters/offenses-routes.ts";
-import { commandmentNumberParams } from "./schemas/commandment-params.ts";
+import type { CommandmentQuestionsService } from "./questions/commandment-questions-service.ts";
+import type { CommandmentsService } from "./commandments-service.ts";
+import type { OffensesService } from "./offenses/offenses-service.ts";
+import commandmentQuestionsRoutes from "./questions/commandment-questions-routes.ts";
+import offensesRoutes from "./offenses/offenses-routes.ts";
+import { commandmentNumberParams } from "./route-schemas.ts";
 
 export interface CommandmentsOptions {
 	commandments: CommandmentsService;

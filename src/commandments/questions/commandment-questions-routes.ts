@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { CommandmentQuestionsService } from "../services/commandment-questions-service.ts";
-import { commandmentNumberParams } from "./schemas/commandment-params.ts";
+import type { CommandmentQuestionsService } from "./commandment-questions-service.ts";
+import { commandmentNumberParams } from "./route-schemas.ts";
 
 interface CommandmentQuestionsOptions {
 	commandmentQuestions: CommandmentQuestionsService;

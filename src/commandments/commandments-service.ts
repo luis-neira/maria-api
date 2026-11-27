@@ -1,5 +1,5 @@
-import { AppError } from "../../errors.ts";
-import type { Commandment } from "../domain/commandment.ts";
+import { AppError } from "../errors.ts";
+import type { Commandment } from "./domain/commandment.ts";
 
 export interface CommandmentsRepository {
 	/** Returns all Commandments in number order. */

@@ -1,4 +1,4 @@
-import type { CommandmentsService } from "../../services/commandments-service.ts";
+import type { CommandmentsService } from "../services/commandments-service.ts";
 
 export interface CommandmentQuestion {
 	id: number;

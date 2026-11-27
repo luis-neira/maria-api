@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from "fastify";
-import type { OffensesService } from "../services/offenses-service.ts";
-import { commandmentNumberParams } from "./schemas/commandment-params.ts";
+import type { OffensesService } from "./offenses-service.ts";
+import { commandmentNumberParams } from "./route-schemas.ts";
 
 interface OffensesOptions {
 	offenses: OffensesService;
