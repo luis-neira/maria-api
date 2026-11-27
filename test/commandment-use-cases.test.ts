@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import {
-	type CommandmentsRepository,
-	createCommandmentsService,
-} from "../src/commandments/commandments-service.ts";
-import type { Commandment } from "../src/commandments/domain/commandment.ts";
+import type {
+	Commandment,
+	CommandmentsRepository,
+} from "../src/commandments/commandments-repository.ts";
+import { createCommandmentsService } from "../src/commandments/commandments-service.ts";
 import { AppError } from "../src/errors.ts";
 
 // A fake repository: an array behind the same interface. No database, no Fastify.

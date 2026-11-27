@@ -1,11 +1,5 @@
 import { AppError } from "../errors.ts";
-import type { Commandment } from "./domain/commandment.ts";
-
-export interface CommandmentsRepository {
-	/** Returns all Commandments in number order. */
-	findAll(): Promise<Commandment[]>;
-	findByCommandmentNumber(number: number): Promise<Commandment | undefined>;
-}
+import type { CommandmentsRepository } from "./commandments-repository.ts";
 
 export function createCommandmentsService(repository: CommandmentsRepository) {
 	return {

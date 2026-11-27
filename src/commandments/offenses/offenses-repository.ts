@@ -1,5 +1,23 @@
 import type { Conn } from "#db/types.ts";
-import type { OffensesRepository } from "./offenses-service.ts";
+
+export interface Offense {
+	id: number;
+	text: string;
+}
+
+export interface OffenseCategory {
+	id: number;
+	text: string;
+}
+
+export interface OffenseWithCategory extends Offense {
+	category: OffenseCategory | null;
+}
+
+export interface OffensesRepository {
+	/** Returns Offenses ordered by category text, then Offense text, with uncategorized Offenses last. */
+	findByCommandmentNumber(number: number): Promise<OffenseWithCategory[]>;
+}
 
 export function createOffensesRepository(db: Conn): OffensesRepository {
 	return {

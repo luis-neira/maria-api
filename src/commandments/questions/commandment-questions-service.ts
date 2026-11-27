@@ -1,16 +1,5 @@
 import type { CommandmentsService } from "../commandments-service.ts";
-
-export interface CommandmentQuestion {
-	id: number;
-	commandmentId: number;
-	questionPosition: number;
-	text: string;
-}
-
-export interface CommandmentQuestionsRepository {
-	/** Returns the Commandment's Examination questions in position order. */
-	findByCommandmentNumber(number: number): Promise<CommandmentQuestion[]>;
-}
+import type { CommandmentQuestionsRepository } from "./commandment-questions-repository.ts";
 
 export function createCommandmentQuestionsService(
 	repository: CommandmentQuestionsRepository,

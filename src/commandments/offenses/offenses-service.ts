@@ -1,37 +1,24 @@
 import type { CommandmentsService } from "../commandments-service.ts";
+import type {
+	Offense,
+	OffenseCategory,
+	OffensesRepository,
+	OffenseWithCategory,
+} from "./offenses-repository.ts";
 
-interface OffenseSummary {
-	id: number;
-	text: string;
-}
-
-interface OffenseCategorySummary {
-	id: number;
-	text: string;
-}
-
-interface OffenseWithCategory extends OffenseSummary {
-	category: OffenseCategorySummary | null;
-}
-
-export interface OffensesRepository {
-	/** Returns Offenses ordered by category text, then Offense text, with uncategorized Offenses last. */
-	findByCommandmentNumber(number: number): Promise<OffenseWithCategory[]>;
-}
-
-interface OffenseCategoryWithOffenses extends OffenseCategorySummary {
-	offenses: OffenseSummary[];
+interface OffenseCategoryWithOffenses extends OffenseCategory {
+	offenses: Offense[];
 }
 
 export interface CommandmentOffenses {
 	categories: OffenseCategoryWithOffenses[];
-	uncategorized: OffenseSummary[];
+	uncategorized: Offense[];
 }
 
 // Keeps the order the rows come in, so the repository decides the sort
 function groupByCategory(rows: OffenseWithCategory[]): CommandmentOffenses {
 	const categories = new Map<number, OffenseCategoryWithOffenses>();
-	const uncategorized: OffenseSummary[] = [];
+	const uncategorized: Offense[] = [];
 	for (const { id, text, category } of rows) {
 		if (!category) {
 			uncategorized.push({ id, text });

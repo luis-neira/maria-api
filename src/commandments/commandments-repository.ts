@@ -1,7 +1,18 @@
 import type { Conn } from "#db/types.ts";
-import type { CommandmentsRepository } from "./commandments-service.ts";
 
 const commandmentColumns = ["id", "number", "text"] as const;
+
+export interface Commandment {
+	id: number;
+	number: number;
+	text: string;
+}
+
+export interface CommandmentsRepository {
+	/** Returns all Commandments in number order. */
+	findAll(): Promise<Commandment[]>;
+	findByCommandmentNumber(number: number): Promise<Commandment | undefined>;
+}
 
 export function createCommandmentsRepository(db: Conn): CommandmentsRepository {
 	return {
