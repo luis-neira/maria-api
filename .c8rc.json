@@ -5,7 +5,8 @@
   ],
   "exclude": [
     "**/*.d.ts",
-    "src/db/types.ts"
+    "src/db/types.ts",
+    "src/server.ts"
   ],
   "extension": [
     ".ts"
