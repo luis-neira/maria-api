@@ -2,7 +2,6 @@ import type { FastifyPluginAsync } from "fastify";
 import type { ChurchPreceptQuestionsService } from "../services/church-precept-questions-service.ts";
 import type { ChurchPreceptsService } from "../services/church-precepts-service.ts";
 import churchPreceptQuestionsRoutes from "./church-precept-questions-routes.ts";
-import { churchPreceptNumberParams } from "./schemas/church-precept-params.ts";
 
 export interface ChurchPreceptsOptions {
 	churchPrecepts: ChurchPreceptsService;
@@ -16,6 +15,12 @@ const churchPreceptSchema = {
 		number: { type: "integer" },
 		text: { type: "string" },
 	},
+} as const;
+
+export const churchPreceptNumberParams = {
+	type: "object",
+	required: ["number"],
+	properties: { number: { type: "integer", minimum: 1, maximum: 5 } },
 } as const;
 
 const churchPreceptsRoutes: FastifyPluginAsync<ChurchPreceptsOptions> = async (
