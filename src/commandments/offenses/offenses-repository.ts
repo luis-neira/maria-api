@@ -1,3 +1,4 @@
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 import type { Conn } from "#db/types.ts";
 
 export interface Offense {
@@ -24,39 +25,41 @@ export interface OffensesRepository {
 export function createOffensesRepository(db: Conn): OffensesRepository {
 	return {
 		async findByCommandmentNumber(number) {
-			const rows = await db
+			const commandment = await db
 				.selectFrom("commandments as c")
-				.leftJoin("offenses as o", "o.commandmentId", "c.id")
-				.leftJoin("offenseCategories as oc", "oc.id", "o.offenseCategoryId")
-				.select([
-					"o.id",
-					"o.text",
-					"oc.id as categoryId",
-					"oc.text as categoryText",
-				])
+				.select((eb) =>
+					jsonArrayFrom(
+						eb
+							.selectFrom("offenses as o")
+							.leftJoin(
+								"offenseCategories as oc",
+								"oc.id",
+								"o.offenseCategoryId",
+							)
+							.select([
+								"o.id",
+								"o.text",
+								"oc.id as categoryId",
+								"oc.text as categoryText",
+							])
+							.whereRef("o.commandmentId", "=", "c.id")
+							.orderBy("oc.text", (order) => order.nullsLast())
+							.orderBy("o.text"),
+					).as("offenses"),
+				)
 				.where("c.number", "=", number)
-				.orderBy("oc.text") // unique within a Commandment, so each category stays together
-				.orderBy("o.text")
-				.execute();
-			if (rows.length === 0) {
-				return undefined;
-			}
+				.executeTakeFirst();
 
-			const offenses: OffenseWithCategory[] = [];
-			for (const { id, text, categoryId, categoryText } of rows) {
-				if (id === null || text === null) {
-					continue;
-				}
-				offenses.push({
+			return commandment?.offenses.map(
+				({ id, text, categoryId, categoryText }) => ({
 					id,
 					text,
 					category:
 						categoryId === null || categoryText === null
 							? null
 							: { id: categoryId, text: categoryText },
-				});
-			}
-			return offenses;
+				}),
+			);
 		},
 	};
 }
