@@ -1,3 +1,4 @@
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 import type { Conn } from "#db/types.ts";
 
 export interface CommandmentQuestion {
@@ -19,29 +20,21 @@ export function createCommandmentQuestionsRepository(
 ): CommandmentQuestionsRepository {
 	return {
 		async findByCommandmentNumber(number) {
-			const rows = await db
-				.selectFrom("commandments as c")
-				.leftJoin("commandmentQuestions as q", "q.commandmentId", "c.id")
-				.select([
-					"q.id",
-					"c.id as commandmentId",
-					"q.questionPosition",
-					"q.text",
-				])
-				.where("c.number", "=", number)
-				.orderBy("q.questionPosition")
-				.execute();
-			if (rows.length === 0) {
-				return undefined;
-			}
+			const commandment = await db
+				.selectFrom("commandments")
+				.select((eb) =>
+					jsonArrayFrom(
+						eb
+							.selectFrom("commandmentQuestions")
+							.select(["id", "commandmentId", "questionPosition", "text"])
+							.whereRef("commandmentId", "=", "commandments.id")
+							.orderBy("questionPosition"),
+					).as("questions"),
+				)
+				.where("number", "=", number)
+				.executeTakeFirst();
 
-			const questions: CommandmentQuestion[] = [];
-			for (const { id, commandmentId, questionPosition, text } of rows) {
-				if (id !== null && questionPosition !== null && text !== null) {
-					questions.push({ id, commandmentId, questionPosition, text });
-				}
-			}
-			return questions;
+			return commandment?.questions;
 		},
 	};
 }

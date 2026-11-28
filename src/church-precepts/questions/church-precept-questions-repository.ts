@@ -1,3 +1,4 @@
+import { jsonArrayFrom } from "kysely/helpers/postgres";
 import type { Conn } from "#db/types.ts";
 
 export interface ChurchPreceptQuestion {
@@ -19,29 +20,21 @@ export function createChurchPreceptQuestionsRepository(
 ): ChurchPreceptQuestionsRepository {
 	return {
 		async findByChurchPreceptNumber(number) {
-			const rows = await db
-				.selectFrom("churchPrecepts as p")
-				.leftJoin("churchPreceptQuestions as q", "q.churchPreceptId", "p.id")
-				.select([
-					"q.id",
-					"p.id as churchPreceptId",
-					"q.questionPosition",
-					"q.text",
-				])
-				.where("p.number", "=", number)
-				.orderBy("q.questionPosition")
-				.execute();
-			if (rows.length === 0) {
-				return undefined;
-			}
+			const precept = await db
+				.selectFrom("churchPrecepts")
+				.select((eb) =>
+					jsonArrayFrom(
+						eb
+							.selectFrom("churchPreceptQuestions")
+							.select(["id", "churchPreceptId", "questionPosition", "text"])
+							.whereRef("churchPreceptId", "=", "churchPrecepts.id")
+							.orderBy("questionPosition"),
+					).as("questions"),
+				)
+				.where("number", "=", number)
+				.executeTakeFirst();
 
-			const questions: ChurchPreceptQuestion[] = [];
-			for (const { id, churchPreceptId, questionPosition, text } of rows) {
-				if (id !== null && questionPosition !== null && text !== null) {
-					questions.push({ id, churchPreceptId, questionPosition, text });
-				}
-			}
-			return questions;
+			return precept?.questions;
 		},
 	};
 }
