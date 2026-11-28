@@ -8,21 +8,40 @@ export interface ChurchPreceptQuestion {
 }
 
 export interface ChurchPreceptQuestionsRepository {
-	/** Returns the Church precept's Examination questions in position order. */
-	findByChurchPreceptId(id: number): Promise<ChurchPreceptQuestion[]>;
+	/** Returns Examination questions in position order, or undefined for a missing Church precept. */
+	findByChurchPreceptNumber(
+		number: number,
+	): Promise<ChurchPreceptQuestion[] | undefined>;
 }
 
 export function createChurchPreceptQuestionsRepository(
 	db: Conn,
 ): ChurchPreceptQuestionsRepository {
 	return {
-		async findByChurchPreceptId(id) {
-			return db
-				.selectFrom("churchPreceptQuestions")
-				.selectAll()
-				.where("churchPreceptId", "=", id)
-				.orderBy("questionPosition")
+		async findByChurchPreceptNumber(number) {
+			const rows = await db
+				.selectFrom("churchPrecepts as p")
+				.leftJoin("churchPreceptQuestions as q", "q.churchPreceptId", "p.id")
+				.select([
+					"q.id",
+					"p.id as churchPreceptId",
+					"q.questionPosition",
+					"q.text",
+				])
+				.where("p.number", "=", number)
+				.orderBy("q.questionPosition")
 				.execute();
+			if (rows.length === 0) {
+				return undefined;
+			}
+
+			const questions: ChurchPreceptQuestion[] = [];
+			for (const { id, churchPreceptId, questionPosition, text } of rows) {
+				if (id !== null && questionPosition !== null && text !== null) {
+					questions.push({ id, churchPreceptId, questionPosition, text });
+				}
+			}
+			return questions;
 		},
 	};
 }

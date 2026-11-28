@@ -51,7 +51,6 @@ export function buildApp({ databaseUrl, apiKey, ...fastifyOpts }: AppOptions) {
 				churchPrecepts,
 				churchPreceptQuestions: createChurchPreceptQuestionsService(
 					createChurchPreceptQuestionsRepository(db),
-					churchPrecepts.getByNumber,
 				),
 			},
 		};

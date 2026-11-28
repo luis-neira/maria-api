@@ -1,14 +1,16 @@
-import type { ChurchPreceptsService } from "../church-precepts-service.ts";
+import { AppError } from "../../errors.ts";
 import type { ChurchPreceptQuestionsRepository } from "./church-precept-questions-repository.ts";
 
 export function createChurchPreceptQuestionsService(
 	repository: ChurchPreceptQuestionsRepository,
-	getChurchPreceptByNumber: ChurchPreceptsService["getByNumber"],
 ) {
 	return {
 		async listByChurchPreceptNumber(number: number) {
-			const churchPrecept = await getChurchPreceptByNumber(number);
-			return repository.findByChurchPreceptId(churchPrecept.id);
+			const questions = await repository.findByChurchPreceptNumber(number);
+			if (questions === undefined) {
+				throw new AppError("NOT_FOUND", `Church Precept ${number} not found.`);
+			}
+			return questions;
 		},
 	};
 }

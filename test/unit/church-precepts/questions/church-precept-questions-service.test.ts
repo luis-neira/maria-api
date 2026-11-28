@@ -1,42 +1,26 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createChurchPreceptsService } from "#src/church-precepts/church-precepts-service.ts";
 import { createChurchPreceptQuestionsService } from "#src/church-precepts/questions/church-precept-questions-service.ts";
 import { AppError } from "#src/errors.ts";
 
-const churchPrecepts = [
-	{ id: 8, number: 1, text: "First" },
-	{ id: 4, number: 2, text: "Second" },
-];
-
-const repository = {
-	async findAll() {
-		return churchPrecepts;
-	},
-	async findByChurchPreceptNumber(number: number) {
-		return churchPrecepts.find(
-			(churchPrecept) => churchPrecept.number === number,
-		);
-	},
-};
-
-const churchPreceptsService = createChurchPreceptsService(repository);
-
 const questions = {
-	async findByChurchPreceptId(id: number) {
-		return id === 8
-			? [
+	async findByChurchPreceptNumber(number: number) {
+		switch (number) {
+			case 1:
+				return [
 					{ id: 2, churchPreceptId: 8, questionPosition: 1, text: "First?" },
 					{ id: 1, churchPreceptId: 8, questionPosition: 2, text: "Second?" },
-				]
-			: [];
+				];
+			case 2:
+				return [];
+			default:
+				return undefined;
+		}
 	},
 };
 
-const churchPreceptQuestionsService = createChurchPreceptQuestionsService(
-	questions,
-	churchPreceptsService.getByNumber,
-);
+const churchPreceptQuestionsService =
+	createChurchPreceptQuestionsService(questions);
 
 test("lists a Church precept's Examination questions in position order", async () => {
 	assert.deepEqual(
