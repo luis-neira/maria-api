@@ -31,24 +31,21 @@ export function buildApp({ databaseUrl, apiKey, ...fastifyOpts }: AppOptions) {
 
 	app.register(dbPlugin, { connectionString: databaseUrl });
 	const apiOptions = ({ db }: FastifyInstance) => {
-		const commandments = createCommandmentsService(
-			createCommandmentsRepository(db),
-		);
-		const churchPrecepts = createChurchPreceptsService(
-			createChurchPreceptsRepository(db),
-		);
-
 		return {
 			apiKey,
 			commandments: {
-				commandments,
+				commandments: createCommandmentsService(
+					createCommandmentsRepository(db),
+				),
 				commandmentQuestions: createCommandmentQuestionsService(
 					createCommandmentQuestionsRepository(db),
 				),
 				offenses: createOffensesService(createOffensesRepository(db)),
 			},
 			churchPrecepts: {
-				churchPrecepts,
+				churchPrecepts: createChurchPreceptsService(
+					createChurchPreceptsRepository(db),
+				),
 				churchPreceptQuestions: createChurchPreceptQuestionsService(
 					createChurchPreceptQuestionsRepository(db),
 				),
