@@ -44,7 +44,6 @@ export function buildApp({ databaseUrl, apiKey, ...fastifyOpts }: AppOptions) {
 				commandments,
 				commandmentQuestions: createCommandmentQuestionsService(
 					createCommandmentQuestionsRepository(db),
-					commandments.getByNumber,
 				),
 				offenses: createOffensesService(createOffensesRepository(db)),
 			},

@@ -454,6 +454,20 @@ test("questions come back camelCased and in position order", async (t) => {
 	]);
 });
 
+test("a Commandment with no Examination questions returns an empty array", async (t) => {
+	await insertCommandment(4, "Honor your father and your mother.");
+	const app = createApp();
+	t.after(() => app.close());
+
+	const res = await app.inject({
+		method: "GET",
+		url: "/api/commandments/4/questions",
+		headers,
+	});
+	assert.equal(res.statusCode, 200);
+	assert.deepEqual(res.json(), []);
+});
+
 test("questions for a missing commandment are a 404", async (t) => {
 	const app = createApp();
 	t.after(() => app.close());

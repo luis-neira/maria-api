@@ -1,14 +1,16 @@
-import type { CommandmentsService } from "../commandments-service.ts";
+import { AppError } from "../../errors.ts";
 import type { CommandmentQuestionsRepository } from "./commandment-questions-repository.ts";
 
 export function createCommandmentQuestionsService(
 	repository: CommandmentQuestionsRepository,
-	getCommandmentByNumber: CommandmentsService["getByNumber"],
 ) {
 	return {
 		async listByCommandmentNumber(number: number) {
-			await getCommandmentByNumber(number);
-			return repository.findByCommandmentNumber(number);
+			const questions = await repository.findByCommandmentNumber(number);
+			if (questions === undefined) {
+				throw new AppError("NOT_FOUND", `Commandment ${number} not found.`);
+			}
+			return questions;
 		},
 	};
 }

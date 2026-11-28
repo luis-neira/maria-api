@@ -1,39 +1,26 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createCommandmentsService } from "#src/commandments/commandments-service.ts";
 import type { CommandmentQuestionsRepository } from "#src/commandments/questions/commandment-questions-repository.ts";
 import { createCommandmentQuestionsService } from "#src/commandments/questions/commandment-questions-service.ts";
 import { AppError } from "#src/errors.ts";
 
-const rows = [
-	{ id: 4, number: 1, text: "First" },
-	{ id: 5, number: 2, text: "Second" },
-];
-
-const commandments = createCommandmentsService({
-	async findAll() {
-		return rows;
-	},
-	async findByCommandmentNumber(number) {
-		return rows.find((commandment) => commandment.number === number);
-	},
-});
-
 const questions: CommandmentQuestionsRepository = {
 	async findByCommandmentNumber(number) {
-		return number === 1
-			? [
+		switch (number) {
+			case 1:
+				return [
 					{ id: 2, commandmentId: 4, questionPosition: 1, text: "First?" },
 					{ id: 1, commandmentId: 4, questionPosition: 2, text: "Second?" },
-				]
-			: [];
+				];
+			case 2:
+				return [];
+			default:
+				return undefined;
+		}
 	},
 };
 
-const questionsService = createCommandmentQuestionsService(
-	questions,
-	commandments.getByNumber,
-);
+const questionsService = createCommandmentQuestionsService(questions);
 
 test("lists a Commandment's Examination questions in position order", async () => {
 	assert.deepEqual(await questionsService.listByCommandmentNumber(1), [
