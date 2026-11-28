@@ -1,4 +1,4 @@
-import type { CommandmentsService } from "../commandments-service.ts";
+import { AppError } from "../../errors.ts";
 import type {
 	Offense,
 	OffenseCategory,
@@ -34,14 +34,14 @@ function groupByCategory(rows: OffenseWithCategory[]): CommandmentOffenses {
 	return { categories: [...categories.values()], uncategorized };
 }
 
-export function createOffensesService(
-	repository: OffensesRepository,
-	getCommandmentByNumber: CommandmentsService["getByNumber"],
-) {
+export function createOffensesService(repository: OffensesRepository) {
 	return {
 		async listByCommandmentNumber(number: number) {
-			await getCommandmentByNumber(number);
-			return groupByCategory(await repository.findByCommandmentNumber(number));
+			const offenses = await repository.findByCommandmentNumber(number);
+			if (offenses === undefined) {
+				throw new AppError("NOT_FOUND", `Commandment ${number} not found.`);
+			}
+			return groupByCategory(offenses);
 		},
 	};
 }

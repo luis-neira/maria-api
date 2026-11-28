@@ -15,16 +15,18 @@ export interface OffenseWithCategory extends Offense {
 }
 
 export interface OffensesRepository {
-	/** Returns Offenses ordered by category text, then Offense text, with uncategorized Offenses last. */
-	findByCommandmentNumber(number: number): Promise<OffenseWithCategory[]>;
+	/** Returns undefined for a missing Commandment. Orders Offenses by category text, then Offense text, with uncategorized Offenses last. */
+	findByCommandmentNumber(
+		number: number,
+	): Promise<OffenseWithCategory[] | undefined>;
 }
 
 export function createOffensesRepository(db: Conn): OffensesRepository {
 	return {
 		async findByCommandmentNumber(number) {
 			const rows = await db
-				.selectFrom("offenses as o")
-				.innerJoin("commandments as c", "c.id", "o.commandmentId")
+				.selectFrom("commandments as c")
+				.leftJoin("offenses as o", "o.commandmentId", "c.id")
 				.leftJoin("offenseCategories as oc", "oc.id", "o.offenseCategoryId")
 				.select([
 					"o.id",
@@ -36,14 +38,25 @@ export function createOffensesRepository(db: Conn): OffensesRepository {
 				.orderBy("oc.text") // unique within a Commandment, so each category stays together
 				.orderBy("o.text")
 				.execute();
-			return rows.map(({ id, text, categoryId, categoryText }) => ({
-				id,
-				text,
-				category:
-					categoryId === null || categoryText === null
-						? null
-						: { id: categoryId, text: categoryText },
-			}));
+			if (rows.length === 0) {
+				return undefined;
+			}
+
+			const offenses: OffenseWithCategory[] = [];
+			for (const { id, text, categoryId, categoryText } of rows) {
+				if (id === null || text === null) {
+					continue;
+				}
+				offenses.push({
+					id,
+					text,
+					category:
+						categoryId === null || categoryText === null
+							? null
+							: { id: categoryId, text: categoryText },
+				});
+			}
+			return offenses;
 		},
 	};
 }

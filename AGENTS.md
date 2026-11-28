@@ -12,6 +12,10 @@ Default vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-
 
 Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
 
+## Repository lookups
+
+Return `undefined` when a repository lookup finds no matching resource. When the lookup also checks a parent and returns its children, return `undefined` for a missing parent and `[]` for an existing parent with no children. Use `null` for explicitly nullable fields on existing records.
+
 ## Commits
 
 Every commit message follows [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/#specification): `<type>[(scope)][!]: <description>`, then an optional body and footers, each block separated by a blank line. This applies to new commits, amends, rewords, squash commits, and PR titles. Git's default merge messages stay as they are.
